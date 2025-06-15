@@ -1,0 +1,2 @@
+Works by temporary storing files in this temp folder then uploading to cloud later after completion of file
+ transfer to temp folder

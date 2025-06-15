@@ -1,4 +1,5 @@
 import Product from "../models/Product.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 // Get all products
 export const getProducts = async (req, res) => {
@@ -18,9 +19,22 @@ export const getProductById = async (req, res) => {
 
 // Create product
 export const createProduct = async (req, res) => {
-  const newProduct = new Product(req.body);
-  const savedProduct = await newProduct.save();
-  res.status(201).json(savedProduct);
+  try {
+    let imageUrl = "";
+    if (req.file) {
+      const result = await uploadOnCloudinary(req.file.path);
+      imageUrl = result.secure_url; // Get the secure URL from Cloudinary response
+    }
+    const newProduct = new Product({
+      ...req.body,
+      images: imageUrl ? [{ url: imageUrl }] : []
+    });
+    const savedProduct = await newProduct.save();
+    res.status(201).json(savedProduct);
+  } catch (error) {
+    res.status(500).json({ message: "Error creating product" });
+  }
+  // res.status(201).json(savedProduct);
 };
 
 // Update product
