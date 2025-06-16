@@ -15,6 +15,7 @@ import mongoose from "mongoose";
 
 // const mongoose = require('mongoose');
 
+// Also dimension needed of product for authentication and shipping
 const reviewSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -50,12 +51,16 @@ const productSchema = new mongoose.Schema({
   subcategories: [{
     type: String
   }],
-  price: {
+  InitialPrice: {
     type: Number,
     required: [true, 'Product price is required'],
     min: 0
   },
-  discountPrice: {
+  isDiscounted: {
+    type: Boolean,
+    default: false
+  },
+  afterDiscountPrice: {
     type: Number,
     default: 0
   },
@@ -73,17 +78,18 @@ const productSchema = new mongoose.Schema({
     unique: true,
     sparse: true
   },
+  
+  isFeatured: {//you can display this product in a “Featured Products” section, homepage carousel, or for promotional/advertising purposes. 
+    type: Boolean,
+    default: false
+  },
+  featuredImage: {//This should store the URL of the main image for the product (the primary image you want to show first).
+    type: String
+  },
   images: [{
     url: { type: String, required: true },
     alt: { type: String, default: 'ProductImage' }
   }],
-  featuredImage: {
-    type: String
-  },
-  isFeatured: {
-    type: Boolean,
-    default: false
-  },
   tags: [{
     type: String,
     lowercase: true,

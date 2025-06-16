@@ -39,12 +39,31 @@ export const createProduct = async (req, res) => {
 
 // Update product
 export const updateProduct = async (req, res) => {
-  const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(product);
+  try {
+    let updateData = { ...req.body };
+    if (req.file) {
+      const result = await uploadOnCloudinary(req.file.path);
+      updateData.images = [{ url: result.secure_url }]; // Update with new image URL
+    }
+    const product = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    if (product) {
+      res.json(product);
+    } else {
+      res.status(404).json({ message: "Product not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error updating product" });
+  }
+  // const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  // res.json(product);
 };
 
 // Delete product
 export const deleteProduct = async (req, res) => {
-  await Product.findByIdAndDelete(req.params.id);
-  res.json({ message: "Product deleted" });
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ message: "Product deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting product" });
+  }
 };
