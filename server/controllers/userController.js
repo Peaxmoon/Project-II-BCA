@@ -1,59 +1,139 @@
-import User from '../models/User';
+import User from '../models/User.js';
+import { generateAccessToken, generateRefreshToken } from '../utils/generateToken.js';
 
 
 // Get all Users List
 export const userLists = async (req, res) => {
-  const users = await Users.find();
+  const users = await User.find();
   res.json(users);
 }
 
 // Get Single user details
 export const userDetails = async (req, res) => {
-  const user = await Users.findById(req.params.id);
+  const user = await User.findById(req.params.id);
   if (user) {
     res.json(user);
   } else {
-    res.status(404).json({ message: "User Not Found"})
+    res.status(404).json({ message: "User Not Found" })
   }
 }
 
 // Post create User
 export const createUser = async (req, res) => {
   try {
-    const user = "";
-    const newUser = new User({ ...req.body });
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(409).json({ message: "Conflict Email Already Exists!!!" });
+    }
+    const newUser = new User({ ...req.body, email });
     const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
-  }catch (error) {
-    res.status(500).json({ message: "Error creating User"});
+
+    // Generate Tokens
+    const accessToken = generateAccessToken(savedUser)
+    const refreshToken = generateRefreshToken(savedUser)
+
+    // Optionally set refresh token in HttpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    })
+
+    res.status(201).json({ 
+      message: 'User created successfully',
+       savedUser,
+       accessToken,
+       user: {
+        id: savedUser._id,
+        name: savedUser.name,
+        email: savedUser.email,
+        role: savedUser.role,
+       }
+       });
+  } catch (error) {
+    res.status(500).json({ message: "Error creating User", error: error.message });
   }
 }
 
 export const updateUser = async (req, res) => {
   try {
     let updateData = { ...req.body };
-    const user = await User.findByIdAndUpdate(req,params.id, updateData, { new: true });
+    const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (user) {
       res.json(user);
     } else {
-      res.status(404).json({ message: "User not found"});
+      res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
-    res.status(500).json({ message: "Error Updating User"})
+    res.status(500).json({ message: "Error Updating User" })
   }
 };
 
 export const deleteUser = async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
-    res.json({ message: "User id Deleted Succesfully!!!"});
-  }catch (error) {
-    res.status(500).json({ messge: "Error deleting User"})
+    res.json({ message: "User id Deleted Succesfully!!!" });
+  } catch (error) {
+    res.status(500).json({ messge: "Error deleting User" })
   }
 }
 
+export const deleteUserDetails = async (req, res) => {
+    try {
+    // Block users from changing protected fields
+    delete req.body.role;
+    delete req.body.email;
 
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
 
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "User updated/deleted successfully!", updatedUser });
+
+  } catch (error) {
+    res.status(500).json({ message: "Error updating/deleting User", error: error.message });
+  }
+};
+  
+
+export const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email }).select('+password');
+  if (!user || !(await user.comparePassword(password))) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
+  const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user);
+
+  // Optionally set refresh token in HttpOnly cookie
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'Strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  });
+
+  res.status(200).json({
+    message: "Login successful",
+    accessToken,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    }
+  });
+};
 
 
 

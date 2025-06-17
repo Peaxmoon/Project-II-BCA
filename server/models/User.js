@@ -24,10 +24,10 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    // match: [ //Validation can be done in frontend also 
-    //   /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-    //   'Please enter a valid email address',
-    // ],
+    match: [ //Validation can be done in frontend also 
+      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+      'Please enter a valid email address',
+    ],
   },
   password: {
     type: String,
@@ -89,8 +89,7 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-module.exports = mongoose.model('User', userSchema);
-
+export default mongoose.model("User", userSchema);
 
 // Seller status points like if he/she is verified or not, how many products he/she has, etc.
 // You can add more fields as per your requirements, 
