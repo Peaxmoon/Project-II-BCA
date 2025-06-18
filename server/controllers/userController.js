@@ -44,17 +44,21 @@ export const createUser = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     })
 
-    res.status(201).json({ 
+    savedUser.refreshTokens = savedUser.refreshTokens || [];
+    savedUser.refreshTokens.push(refreshToken);
+    await savedUser.save();
+
+    res.status(201).json({
       message: 'User created successfully',
-       savedUser,
-       accessToken,
-       user: {
+      savedUser,
+      accessToken,
+      savedUser: {
         id: savedUser._id,
         name: savedUser.name,
         email: savedUser.email,
         role: savedUser.role,
-       }
-       });
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: "Error creating User", error: error.message });
   }
@@ -84,7 +88,7 @@ export const deleteUser = async (req, res) => {
 }
 
 export const deleteUserDetails = async (req, res) => {
-    try {
+  try {
     // Block users from changing protected fields
     delete req.body.role;
     delete req.body.email;
@@ -104,7 +108,7 @@ export const deleteUserDetails = async (req, res) => {
     res.status(500).json({ message: "Error updating/deleting User", error: error.message });
   }
 };
-  
+
 
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -123,6 +127,10 @@ export const loginUser = async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 
+  user.refreshTokens = user.refreshTokens || [];
+  user.refreshTokens.push(refreshToken);
+  await user.save();
+
   res.status(200).json({
     message: "Login successful",
     accessToken,
@@ -133,6 +141,25 @@ export const loginUser = async (req, res) => {
       role: user.role,
     }
   });
+};
+
+export const logoutUser = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+      const user = await User.findById(decoded.id);
+      if (user) {
+        user.refreshTokens = user.refreshTokens.filter(token => token !== refreshToken);
+        await user.save();
+      }
+    }
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    res.status(200).json({ message: "User logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Logout failed", error: error.message });
+  }
 };
 
 

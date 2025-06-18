@@ -5,14 +5,14 @@ import { createProduct } from "../controllers/productController.js";
 import { upload } from "../middleware/multerMiddleware.js";
 import { refreshAccessToken } from "../utils/generateToken.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
-
+import { loginValidation, registerValidation, validate } from "../middleware/validationMiddleware.js";
 
 const router = express.Router();
 
 // For only user routes, you can create a separate file like userRoutes.js
 router.route('/')
 .get(userLists)
-.post(createUser)
+.post(registerValidation, validate, createUser)
 
 router.route('/:id')
 .get(userDetails)
@@ -20,7 +20,8 @@ router.route('/:id')
 .delete(deleteUserDetails);
 // .delete(deleteUser);
 
-router.post('/login', loginUser);
+router.post('/login', loginValidation, validate, loginUser);
+router.post('/logout', logoutUser);
 router.post('/token/refresh', refreshAccessToken);
 
 // Approve another admin
@@ -28,7 +29,6 @@ router.put('/admin/approve/:id', approveAdmin);
 
 // Only approved admins can create products
 router.post('/admin/product', verifyToken, authorizeAdmin, upload.array("images"), createProduct);
-
 
 
 export default router;

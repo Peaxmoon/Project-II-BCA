@@ -69,6 +69,9 @@ const userSchema = new mongoose.Schema({
     default: 'email',
   },
 
+  // Refresh Token in database
+  refreshTokens: [{ type: String }],
+
   // 🔐 Reset password
   resetPasswordToken: String,
   resetPasswordExpires: Date,
