@@ -1,6 +1,7 @@
 import User from '../models/User.js';
-import { generateAccessToken, generateRefreshToken } from '../utils/generateToken.js';
-
+import { generateAccessToken, generateRefreshToken, generateResetToken } from '../utils/generateToken.js';
+import sgMail from '@sendgrid/mail';
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Get all Users List
 export const userLists = async (req, res) => {
@@ -10,13 +11,15 @@ export const userLists = async (req, res) => {
 
 // Get Single user details
 export const userDetails = async (req, res) => {
-  const user = await User.findById(req.params.id);
-  if (user) {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return next(createError("User not found", 404));
     res.json(user);
-  } else {
-    res.status(404).json({ message: "User Not Found" })
+  } catch (error) {
+    next(error);
   }
 }
+
 
 // Post create User
 export const createUser = async (req, res) => {
@@ -163,8 +166,117 @@ export const logoutUser = async (req, res) => {
 };
 
 
+// export const changePassword = async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+//     const { newPassword, oldPassword} = req.body;
+//     try {
+//       const user = await User.findById(userId);
+//       if( !user ) {
+//         return res.status(300).json({ message : "Couldnot find the user!!!"});
+//       }
+//       if( oldPassword === user.password) {
+//         const user = User.findByIdAndUpdate(req.params.id, newPassword, { new: true });
+//       } else {
+//         return res.status(500).json({ message: "Password Wrong", error: error.message})
+//       }
+//     }
+//   }catch (error) {
+//     res.status(200).json({ messgae: "Something Went Wrong", error: error.message})
+//   }
+// };
+
+// export const resetPassword = async (req, res, next) => {
+//   try {
+//     const { token } = req.params;
+//     const { password } = req.body;
+//     const user = await User.findOne({
+//       resetPasswordToken: token,
+//       resetPasswordExpires: { $gt: Date.now() }
+//     });
+//     if(!user) return res.status(200).json({ message: "Invalid User"});
+
+//     user.password = password;
+//     user.resetPasswordToken = undefined;
+//     user.resetPasswordExpires = undefined;
+//     await user.save();
+    
+//     res.status(200).json({ message: "Password Reset Succesful"});
+//   } catch (error) {
+//     next(error);
+//   }
+// }
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// export const requestPasswordReset = async (req, res, next) => {
+//   try {
+//     const { email } = req.body;
+//     const user = await User.findOne({ email });
+//     if (!user) return res.status(400).json({ message: "User Not Found" });
+
+//     const resetToken = generateResetToken();
+//     user.resetPasswordToken = resetToken;
+//     user.resetPasswordExpires = Date.now() + 3600000;//1 hour till password expires 
+//     await user.save();
+//     // Send email with resetToken (implement sendEmail utility)
+//     // await sendEmail(user.email, "Password Reset", `Reset link: ${process.env.CLIENT_URL}/reset-password/${resetToken}`);
+
+//     res.status(200).json({ message: "Password reset link sent to email" });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
 
 // PUT /admin/approve/:id
+
+export const requestPasswordReset = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const resetToken = generateResetToken();
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    const msg = {
+      to: user.email,
+      from: 'support@sujjalkhadka.com.np', // Use a verified sender
+      subject: 'Password Reset Request',
+      text: `Reset your password: ${resetUrl}`,
+      html: `<p>Click <a href="${resetUrl}">here</a> to reset your password.</p>`,
+    };
+    await sgMail.send(msg);
+
+    res.status(200).json({ message: "Password reset link sent to email" });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const approveAdmin = async (req, res) => {
   const currentAdmin = req.user;
 

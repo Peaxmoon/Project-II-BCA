@@ -27,10 +27,12 @@ export const productValidation = [
 
 // Middleware to handle validation errors
 export const validate = (req, res, next) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-    next();
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error("Validation failed");
+    error.statusCode = 400;
+    error.details = errors.array();
+    return next(error);
+  }
+  next();
 };
-
