@@ -1,0 +1,1 @@
+// This file has been removed. All product data is now managed dynamically via MongoDB.

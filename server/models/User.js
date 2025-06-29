@@ -63,14 +63,20 @@ const userSchema = new mongoose.Schema({
 
   // 📩 Verification and social login
   isEmailVerified: { type: Boolean, default: false },
+  emailVerificationToken: String,
+  emailVerificationExpires: Date,
+
   socialProvider: {
     type: String,
-    enum: ['google', 'facebook', 'email'],
+    // enum: ['google', 'facebook', 'email'],
     default: 'email',
   },
 
   // Refresh Token in database
   refreshTokens: [{ type: String }],
+
+  // Wishlist: array of product ObjectIds
+  wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
 
   // 🔐 Reset password
   resetPasswordToken: String,
@@ -95,7 +101,7 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
 export default mongoose.model("User", userSchema);
 
 // Seller status points like if he/she is verified or not, how many products he/she has, etc.
-// You can add more fields as per your requirements, 
+// You can add more fields as per your requirements,
 // score of seller in case of selling products, listing techniques and improvement suggestions, etc.
 // You can also add fields for seller ratings, number of sales, etc. if you want to track seller performance.
 

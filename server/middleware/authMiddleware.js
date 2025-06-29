@@ -1,18 +1,26 @@
 import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+
 export const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized: No token provided" });
+  let token = null;
+  // Check Authorization header first
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies && req.cookies.accessToken) {
+    // Fallback to cookie
+    token = req.cookies.accessToken;
   }
-
-  const token = authHeader.split(" ")[1];
-
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized: No token provided' });
+  }
   try {
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    req.user = decoded; // contains user ID, role, etc.
+    req.user = decoded;
+    // Ensure we have both _id and id for compatibility
+    req.user._id = req.user._id || req.user.id;
+    req.user.id = req.user.id || req.user._id;
     next();
-  } catch (error) {
-    return res.status(403).json({ message: "Invalid or expired token", error: error.message });
+  } catch (err) {
+    return res.status(401).json({ message: 'Unauthorized: Invalid token' });
   }
 };

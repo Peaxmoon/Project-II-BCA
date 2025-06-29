@@ -22,7 +22,7 @@ import api from '../../services/api';
 import AdminLayout from './AdminLayout';
 
 const roleOptions = [
-  { value: 'user', label: 'User' },
+  { value: 'customer', label: 'Customer' },
   { value: 'admin', label: 'Admin' }
 ];
 
@@ -182,7 +182,9 @@ const UsersManagement = () => {
                           withinPortal
                         />
                       ) : (
-                        <Text size="sm">{user.role}</Text>
+                        <Text size="sm">
+                          {user.role === 'admin' ? 'Admin' : 'Customer'}
+                        </Text>
                       )}
                     </Table.Td>
                     <Table.Td>
@@ -245,7 +247,7 @@ const UsersManagement = () => {
           <Stack gap="md">
             <TextInput label="Name" value={selectedUser.name} readOnly />
             <TextInput label="Email" value={selectedUser.email} readOnly />
-            <TextInput label="Role" value={selectedUser.role} readOnly />
+            <TextInput label="Role" value={selectedUser.role === 'admin' ? 'Admin' : 'Customer'} readOnly />
             <TextInput label="Status" value={selectedUser.isEmailVerified ? 'Verified' : 'Pending'} readOnly />
             <TextInput label="Joined" value={new Date(selectedUser.createdAt).toLocaleString()} readOnly />
             <TextInput label="Last Updated" value={new Date(selectedUser.updatedAt).toLocaleString()} readOnly />

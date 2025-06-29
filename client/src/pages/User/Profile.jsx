@@ -321,7 +321,7 @@ const Profile = () => {
             <Title order={3} size="h4">Account Information</Title>
             <Group gap="md">
               <Text size="sm" fw={600}>Role:</Text>
-              <Text size="sm">{user.role || 'User'}</Text>
+              <Text size="sm">{user.role === 'admin' ? 'Admin' : 'Customer'}</Text>
             </Group>
             <Group gap="md">
               <Text size="sm" fw={600}>Member Since:</Text>

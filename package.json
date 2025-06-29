@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "cloudinary": "^2.6.1",
-    "crypto": "^1.0.1",
-    "multer": "^2.0.1"
-  }
-}

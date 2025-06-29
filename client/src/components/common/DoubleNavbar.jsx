@@ -177,7 +177,7 @@ const DoubleNavbar = () => {
 
   // Get navigation links based on user role
   const getNavLinks = () => {
-    if (user?.isAdmin) {
+    if (user?.role === 'admin') {
       return [...navLinks, { label: 'Admin', icon: IconLayoutDashboard, to: '/admin' }];
     }
     return navLinks;
@@ -357,7 +357,7 @@ const DoubleNavbar = () => {
                     <>
                       <Menu.Item leftSection={<IconUser size={16} />} onClick={() => navigate('/profile')}>Profile</Menu.Item>
                       <Menu.Item leftSection={<IconList size={16} />} onClick={() => navigate('/orders')}>Orders</Menu.Item>
-                      {user.isAdmin && (
+                      {user.role === 'admin' && (
                         <>
                           <Divider my="xs" />
                           <Menu.Item leftSection={<IconLayoutDashboard size={16} />} onClick={() => navigate('/admin')}>Admin Dashboard</Menu.Item>

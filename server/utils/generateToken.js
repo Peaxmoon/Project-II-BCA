@@ -37,8 +37,8 @@ export const refreshAccessToken = async (req, res) => {
     await user.save();
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'Strict',
+      secure: false,
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
     res.json({ accessToken: newAccessToken });
@@ -48,3 +48,4 @@ export const refreshAccessToken = async (req, res) => {
 };
 
 export const generateResetToken = () => crypto.randomBytes(32).toString("hex");
+export const generateEmailVerificationToken = () => crypto.randomBytes(32).toString("hex");

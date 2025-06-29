@@ -1,0 +1,538 @@
+{
+  "info": {
+    "name": "Electomart API",
+    "description": "Postman collection for testing Electomart backend API endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User - Register",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:5000/api/users", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Test1234!\",\n  \"phone\": \"1234567890\"\n}"
+        }
+      }
+    },
+    {
+      "name": "User - Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:5000/api/users/login", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", "login"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Test1234!\"\n}"
+        }
+      }
+    },
+    {
+      "name": "User - Get Profile",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:5000/api/users/{{userId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", "{{userId}}"] }
+      }
+    },
+    {
+      "name": "User - Update Profile",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/users/{{userId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", "{{userId}}"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Updated Name\"\n}"
+        }
+      }
+    },
+    {
+      "name": "User - Delete (Admin Only)",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+        "url": { "raw": "http://localhost:5000/api/users/{{userId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", "{{userId}}"] }
+      }
+    },
+    {
+      "name": "User - Verify Email",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:5000/api/users/verify-email/{{token}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", "verify-email", "{{token}}"] }
+      }
+    },
+    {
+      "name": "User - Request Password Reset",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:5000/api/users/request-password-reset", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", "request-password-reset"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"testuser@example.com\"\n}"
+        }
+      }
+    },
+    {
+      "name": "User - Reset Password",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:5000/api/users/reset-password/{{token}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", "reset-password", "{{token}}"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"NewPass123!\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Product - List All",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:5000/api/products", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products"] }
+      }
+    },
+    {
+      "name": "Product - Get Categories",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:5000/api/products/categories", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products", "categories"] }
+      }
+    },
+    {
+      "name": "Product - Create (Admin Only)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "name", "value": "Test Product", "type": "text" },
+            { "key": "InitialPrice", "value": "1000", "type": "text" },
+            { "key": "description", "value": "A sample product", "type": "text" },
+            { "key": "images", "type": "file", "src": "" }
+          ]
+        },
+        "url": { "raw": "http://localhost:5000/api/products", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products"] }
+      }
+    },
+    {
+      "name": "Product - Get By ID",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:5000/api/products/{{productId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products", "{{productId}}"] }
+      }
+    },
+    {
+      "name": "Product - Update (Admin Only)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/products/{{productId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products", "{{productId}}"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Updated Product Name\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Product - Delete (Admin Only)",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+        "url": { "raw": "http://localhost:5000/api/products/{{productId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products", "{{productId}}"] }
+      }
+    },
+    {
+      "name": "Product - Add Review",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/products/{{productId}}/reviews", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products", "{{productId}}", "reviews"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Great product!\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Product - Get Reviews",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:5000/api/products/{{productId}}/reviews", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products", "{{productId}}", "reviews"] }
+      }
+    },
+    {
+      "name": "Product - Delete Review (Admin Only)",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+        "url": { "raw": "http://localhost:5000/api/products/{{productId}}/reviews/{{reviewId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products", "{{productId}}", "reviews", "{{reviewId}}"] }
+      }
+    },
+    {
+      "name": "Wishlist - Get User Wishlist",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:5000/api/wishlist", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "wishlist"] }
+      }
+    },
+    {
+      "name": "Wishlist - Add Product",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/wishlist", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "wishlist"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productId\": \"{{productId}}\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Wishlist - Remove Product",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:5000/api/wishlist/{{productId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "wishlist", "{{productId}}"] }
+      }
+    },
+    {
+      "name": "Cart - Get User Cart",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:5000/api/cart", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "cart"] }
+      }
+    },
+    {
+      "name": "Cart - Add Item",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/cart", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "cart"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "Cart - Update Item Quantity",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/cart/{{productId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "cart", "{{productId}}"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quantity\": 2\n}"
+        }
+      }
+    },
+    {
+      "name": "Cart - Remove Item",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:5000/api/cart/{{productId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "cart", "{{productId}}"] }
+      }
+    },
+    {
+      "name": "Cart - Clear Cart",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:5000/api/cart", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "cart"] }
+      }
+    },
+    {
+      "name": "Order - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/orders", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "orders"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderItems\": [\n    { \"product\": \"{{productId}}\", \"quantity\": 1 }\n  ],\n  \"shippingAddress\": {\n    \"fullName\": \"Test User\",\n    \"email\": \"testuser@example.com\",\n    \"phone\": \"1234567890\",\n    \"street\": \"123 Main St\",\n    \"city\": \"Kathmandu\",\n    \"state\": \"Bagmati\",\n    \"postalCode\": \"44600\",\n    \"country\": \"Nepal\"\n  },\n  \"paymentMethod\": \"COD\",\n  \"itemsPrice\": 1000,\n  \"shippingPrice\": 0,\n  \"taxPrice\": 130,\n  \"totalPrice\": 1130\n}"
+        }
+      }
+    },
+    {
+      "name": "Order - List User Orders",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:5000/api/orders", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "orders"] }
+      }
+    },
+    {
+      "name": "Order - Get Order By ID",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:5000/api/orders/{{orderId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "orders", "{{orderId}}"] }
+      }
+    },
+    {
+      "name": "Order - Update Status (Admin Only)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/orders/{{orderId}}/status", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "orders", "{{orderId}}", "status"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"Shipped\"\n}"
+        }
+      }
+    },
+    {
+      "name": "User - Get Current User (Me)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:5000/api/users/me", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", "me"] }
+      }
+    },
+    {
+      "name": "User - Refresh Token",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:5000/api/users/token/refresh", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", "token", "refresh"] }
+      }
+    },
+    {
+      "name": "User - Logout",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:5000/api/users/logout", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", "logout"] }
+      }
+    },
+    {
+      "name": "User - Update Role (Admin Only)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/users/{{userId}}/role", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", "{{userId}}", "role"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"admin\"\n}"
+        }
+      }
+    },
+    {
+      "name": "User - Approve Admin (Admin Only)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/users/admin/approve/{{userId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "users", "admin", "approve", "{{userId}}"] }
+      }
+    },
+    {
+      "name": "Product - Get Filter Options",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:5000/api/products/filters", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products", "filters"] }
+      }
+    },
+    {
+      "name": "Product - Get Category Options (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+        "url": { "raw": "http://localhost:5000/api/products/categories", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products", "categories"] }
+      }
+    },
+    {
+      "name": "Product - List by IDs",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:5000/api/products?ids={{productId1}},{{productId2}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products"], "query": [{ "key": "ids", "value": "{{productId1}},{{productId2}}" }] }
+      }
+    },
+    {
+      "name": "Product - Admin Create Product (with images)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "name", "value": "Test Product", "type": "text" },
+            { "key": "InitialPrice", "value": "1000", "type": "text" },
+            { "key": "description", "value": "A sample product", "type": "text" },
+            { "key": "brand", "value": "BrandX", "type": "text" },
+            { "key": "category", "value": "TV & Audio", "type": "text" },
+            { "key": "stock", "value": "10", "type": "text" },
+            { "key": "images", "type": "file", "src": "" }
+          ]
+        },
+        "url": { "raw": "http://localhost:5000/api/products", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products"] }
+      }
+    },
+    {
+      "name": "Product - Admin Update Product (with images)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "name", "value": "Updated Product Name", "type": "text" },
+            { "key": "images", "type": "file", "src": "" }
+          ]
+        },
+        "url": { "raw": "http://localhost:5000/api/products/{{productId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products", "{{productId}}"] }
+      }
+    },
+    {
+      "name": "Product - Get Reviews (Separate Endpoint)",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:5000/api/products/{{productId}}/reviews", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products", "{{productId}}", "reviews"] }
+      }
+    },
+    {
+      "name": "Product - Add Review (Separate Endpoint)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/products/{{productId}}/reviews", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "products", "{{productId}}", "reviews"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Nice product!\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Cart - Add Item (Body)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/cart", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "cart"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1\n}"
+        }
+      }
+    },
+    {
+      "name": "Cart - Update Item Quantity (PUT)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/cart/{{productId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "cart", "{{productId}}"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quantity\": 2\n}"
+        }
+      }
+    },
+    {
+      "name": "Cart - Remove Item (DELETE)",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:5000/api/cart/{{productId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "cart", "{{productId}}"] }
+      }
+    },
+    {
+      "name": "Cart - Clear Cart (DELETE)",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:5000/api/cart", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "cart"] }
+      }
+    },
+    {
+      "name": "Order - List All Orders (Admin/Moderator)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+        "url": { "raw": "http://localhost:5000/api/orders", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "orders"] }
+      }
+    },
+    {
+      "name": "Order - Get Order By ID",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "http://localhost:5000/api/orders/{{orderId}}", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "orders", "{{orderId}}"] }
+      }
+    },
+    {
+      "name": "Order - Update Status (Admin Only)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "http://localhost:5000/api/orders/{{orderId}}/status", "protocol": "http", "host": ["localhost"], "port": "5000", "path": ["api", "orders", "{{orderId}}", "status"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"Shipped\"\n}"
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "token", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "productId", "value": "" },
+    { "key": "productId1", "value": "" },
+    { "key": "productId2", "value": "" },
+    { "key": "orderId", "value": "" },
+    { "key": "reviewId", "value": "" }
+  ]
+}

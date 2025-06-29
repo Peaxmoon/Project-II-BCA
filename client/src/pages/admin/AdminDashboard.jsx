@@ -67,10 +67,10 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => { 
-    if (user?.isAdmin) fetchProducts(true); 
+    if (user?.role === 'admin') fetchProducts(true); 
   }, [user]); // <-- Add dependency array here
 
-  if (!user?.isAdmin) {
+  if (!user?.role || user.role !== 'admin') {
     return (
       <div className="container mx-auto py-8">
         <Title order={2} color="red">Access Denied</Title>
