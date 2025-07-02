@@ -92,7 +92,7 @@ const Footer = () => {
               <Stack gap="xs">
                 <Group gap="sm">
                   <IconPhone size={16} color="var(--mantine-color-blue-6)" />
-                  <Text size="sm">1800-123-4567</Text>
+                  <Text size="sm">9814339304</Text>
                 </Group>
                 <Group gap="sm">
                   <IconMail size={16} color="var(--mantine-color-blue-6)" />
@@ -100,7 +100,7 @@ const Footer = () => {
                 </Group>
                 <Group gap="sm">
                   <IconMapPin size={16} color="var(--mantine-color-blue-6)" />
-                  <Text size="sm">Kathmandu, Nepal</Text>
+                  <Text size="sm">Inaruwa, Nepal</Text>
                 </Group>
               </Stack>
               <Group gap="xs">

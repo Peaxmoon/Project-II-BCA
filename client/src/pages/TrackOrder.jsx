@@ -26,12 +26,16 @@ import {
 } from '@tabler/icons-react';
 import api from '../services/api';
 
+// Anyone can enter an order ID to view the status and details of that order.
+// The logic is handled in the `handleTrackOrder` function and the UI updates accordingly.
+
 const TrackOrder = () => {
   const [searchParams] = useSearchParams();
   const [orderId, setOrderId] = useState('');
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   // Check for order ID in URL parameters
   useEffect(() => {
@@ -62,6 +66,28 @@ const TrackOrder = () => {
       setError(err.response?.data?.message || 'Order not found. Please check your order ID.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleKhaltiPayment = async (advance = false) => {
+    if (!order) return;
+    setPaymentLoading(true);
+    try {
+      const amount = advance
+        ? Math.round(Number(order.totalPrice) * 0.4)
+        : Number(order.totalPrice);
+      const res = await api.post('/payments/khalti/initiate', {
+        amount,
+        orderId: order._id,
+        name: order.shippingAddress?.fullName,
+        email: order.user?.email || '',
+        phone: order.shippingAddress?.phone || ''
+      });
+      window.location.href = res.data.payment_url;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to initiate payment.');
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -293,6 +319,36 @@ const TrackOrder = () => {
                 </Card>
 
                 <Divider />
+
+                {/* Payment Options */}
+                {!order.isPaid && (
+                  <Card shadow="sm" padding="lg" withBorder>
+                    <Stack gap="md">
+                      <Title order={3} size="h4">Payment Options</Title>
+                      <Button
+                        color="violet"
+                        size="md"
+                        loading={paymentLoading}
+                        onClick={() => handleKhaltiPayment(false)}
+                        leftSection={<IconCheck size={18} />}
+                      >
+                        Pay Full Amount with Khalti
+                      </Button>
+                      <Button
+                        color="orange"
+                        size="md"
+                        loading={paymentLoading}
+                        onClick={() => handleKhaltiPayment(true)}
+                        leftSection={<IconCheck size={18} />}
+                      >
+                        Cash on Delivery (Pay 40% Advance with Khalti)
+                      </Button>
+                      <Text size="sm" c="dimmed">
+                        For Cash on Delivery, you must pay 40% of the total amount in advance via Khalti.
+                      </Text>
+                    </Stack>
+                  </Card>
+                )}
 
                 {/* Order Status Legend */}
                 <Stack gap="xs" mt="lg">

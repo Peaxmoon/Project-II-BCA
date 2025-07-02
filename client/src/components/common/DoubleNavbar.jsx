@@ -91,7 +91,7 @@ const SUBCATEGORIES = {
   ]
 };
 
-const hotline = '1800-123-4567';
+const hotline = '9814339304';
 
 const navLinks = [
   { label: 'Home', icon: IconHome, to: '/' },
