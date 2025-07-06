@@ -119,20 +119,20 @@ const Home = () => {
     }
   };
 
-  const categories = [
-    { name: 'TV & Audio', icon: '📺', count: '150+ Products', color: 'blue' },
-    { name: 'Mobile Phones', icon: '📱', count: '200+ Products', color: 'green' },
-    { name: 'Kitchen Appliances', icon: '🍳', count: '100+ Products', color: 'orange' },
-    { name: 'Laptops', icon: '💻', count: '80+ Products', color: 'purple' },
-    { name: 'Refrigerators', icon: '❄️', count: '60+ Products', color: 'cyan' },
-    { name: 'Washing Machines', icon: '🧺', count: '40+ Products', color: 'pink' },
-  ];
+  // const categories = [
+  //   { name: 'TV & Audio', icon: '📺', count: '150+ Products', color: 'blue' },
+  //   { name: 'Mobile Phones', icon: '📱', count: '200+ Products', color: 'green' },
+  //   { name: 'Kitchen Appliances', icon: '🍳', count: '100+ Products', color: 'orange' },
+  //   { name: 'Laptops', icon: '💻', count: '80+ Products', color: 'purple' },
+  //   { name: 'Refrigerators', icon: '❄️', count: '60+ Products', color: 'cyan' },
+  //   { name: 'Washing Machines', icon: '🧺', count: '40+ Products', color: 'pink' },
+  // ];
 
   const brands = [
     { name: 'Samsung', icon: IconDeviceMobile, color: 'blue' },
-    { name: 'Apple', icon: IconDeviceLaptop, color: 'gray' },
+    { name: 'Apple', icon: IconDeviceLaptop, color: 'blue' },
     { name: 'Sony', icon: IconDeviceTv, color: 'blue' },
-    { name: 'LG', icon: IconDeviceSpeaker, color: 'red' },
+    { name: 'LG', icon: IconDeviceSpeaker, color: 'blue' },
     { name: 'Panasonic', icon: IconDeviceAirpods, color: 'blue' },
     { name: 'Whirlpool', icon: IconDeviceWatch, color: 'blue' },
   ];
@@ -382,7 +382,7 @@ const Home = () => {
             <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
               <Stack align="center" gap="sm">
                 <ActionIcon size="xl" variant="light" color="blue" radius="xl">
-                  <IconTrendingUp size={24} />
+                  <IconStar size={24} />
                 </ActionIcon>
                 <Text fw={600} ta="center">Best Prices</Text>
                 <Text size="sm" c="dimmed" ta="center">Competitive prices and great deals</Text>
@@ -414,33 +414,3 @@ const Home = () => {
 };
 
 export default Home;
-//               </ActionIcon>
-//               <Text fw={600} ta="center">Best Prices</Text>
-//               <Text size="sm" c="dimmed" ta="center">Competitive prices and great deals</Text>
-//             </Stack>
-//           </Grid.Col>
-//           <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-//             <Stack align="center" gap="sm">
-//               <ActionIcon size="xl" variant="light" color="orange" radius="xl">
-//                 <IconStar size={24} />
-//               </ActionIcon>
-//               <Text fw={600} ta="center">Fast Delivery</Text>
-//               <Text size="sm" c="dimmed" ta="center">Quick and reliable shipping</Text>
-//             </Stack>
-//           </Grid.Col>
-//           <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-//             <Stack align="center" gap="sm">
-//               <ActionIcon size="xl" variant="light" color="red" radius="xl">
-//                 <IconStar size={24} />
-//               </ActionIcon>
-//               <Text fw={600} ta="center">24/7 Support</Text>
-//               <Text size="sm" c="dimmed" ta="center">Round the clock customer service</Text>
-//             </Stack>
-//           </Grid.Col>
-//         </Grid>
-//       </Paper>
-//     </Container>
-//   );
-// };
-
-// export default Home;

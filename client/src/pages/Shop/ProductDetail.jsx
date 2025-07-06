@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { 
-  Container, 
-  Title, 
-  Text, 
-  Group, 
-  Stack, 
-  Button, 
-  Badge, 
-  Image, 
-  Paper, 
-  Grid, 
-  Loader, 
-  Alert, 
-  NumberInput, 
+import {
+  Container,
+  Title,
+  Text,
+  Group,
+  Stack,
+  Button,
+  Badge,
+  Image,
+  Paper,
+  Grid,
+  Loader,
+  Alert,
+  NumberInput,
   Divider,
   ActionIcon,
   Tooltip,
@@ -22,11 +22,11 @@ import {
   Menu,
   Modal
 } from '@mantine/core';
-import { 
-  IconShoppingCart, 
-  IconHeart, 
-  IconHeartFilled, 
-  IconArrowLeft, 
+import {
+  IconShoppingCart,
+  IconHeart,
+  IconHeartFilled,
+  IconArrowLeft,
   IconAlertCircle,
   IconStar,
   IconTruck,
@@ -65,7 +65,7 @@ const ProductDetail = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editReview, setEditReview] = useState(null);
   const SIMILAR_PAGE_SIZE = 8;
-  
+
   const { addToCart } = useCart();
   const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { user } = useAuth();
@@ -186,10 +186,10 @@ const ProductDetail = () => {
   const handleWishlistToggle = async () => {
     if (!product) return;
     try {
-      const isWishlisted = wishlist?.some(item => 
+      const isWishlisted = wishlist?.some(item =>
         typeof item === 'string' ? item === product._id : item._id === product._id
       );
-      
+
       if (isWishlisted) {
         await removeFromWishlist(product);
       } else {
@@ -204,7 +204,7 @@ const ProductDetail = () => {
     fetchSimilar(similarPage + 1, true);
   };
 
-  const isWishlisted = wishlist?.some(item => 
+  const isWishlisted = wishlist?.some(item =>
     typeof item === 'string' ? item === product?._id : item._id === product?._id
   );
 
@@ -285,10 +285,10 @@ const ProductDetail = () => {
         revs.map(r =>
           r._id === reviewId
             ? {
-                ...r,
-                likesCount: r.isLikedByUser ? (r.likesCount || 1) - 1 : (r.likesCount || 0) + 1,
-                isLikedByUser: !r.isLikedByUser,
-              }
+              ...r,
+              likesCount: r.isLikedByUser ? (r.likesCount || 1) - 1 : (r.likesCount || 0) + 1,
+              isLikedByUser: !r.isLikedByUser,
+            }
             : r
         )
       );
@@ -364,10 +364,10 @@ const ProductDetail = () => {
         <Alert icon={<IconAlertCircle size={16} />} color="red" title="Error">
           {error || 'Product not found'}
         </Alert>
-        <Button 
-          component={Link} 
-          to="/products" 
-          variant="light" 
+        <Button
+          component={Link}
+          to="/products"
+          variant="light"
           mt="md"
           leftSection={<IconArrowLeft size={16} />}
         >
@@ -381,13 +381,13 @@ const ProductDetail = () => {
   const mainImage = images[selectedImage]?.url || product.featuredImage || '/images/placeholder.png';
 
   return (
-    <Container size="lg" py="xl">
+    <Container size="lg" py="xs">
       {/* Breadcrumb */}
       <Group gap="xs" mb="lg">
-        <Button 
-          component={Link} 
-          to="/products" 
-          variant="subtle" 
+        <Button
+          component={Link}
+          to="/products"
+          variant="subtle"
           size="sm"
           leftSection={<IconArrowLeft size={16} />}
         >
@@ -399,43 +399,72 @@ const ProductDetail = () => {
         <Text size="sm" fw={600}>{product.name}</Text>
       </Group>
 
-      <Grid gutter="xl">
+      <Grid gutter="xs">
         {/* Product Images */}
         <Grid.Col span={{ base: 12, md: 6 }}>
           <Paper radius="md" p="md" withBorder>
             <Stack gap="md">
-              {/* Main Image */}
-              <Image
-                src={mainImage}
-                alt={product.name}
-                height={400}
-                fit="contain"
-                style={{ background: '#f8f9fa', borderRadius: 8 }}
-                fallbackSrc="https://placehold.co/400x400?text=No+Image"
-              />
-              
-              {/* Thumbnail Images */}
-              {images.length > 1 && (
-                <Group gap="xs" justify="center">
-                  {images.map((img, index) => (
-                    <Image
-                      key={index}
-                      src={img.url}
-                      alt={`${product.name} ${index + 1}`}
-                      width={80}
-                      height={80}
-                      fit="contain"
-                      style={{ 
-                        background: '#f8f9fa', 
-                        borderRadius: 6,
-                        cursor: 'pointer',
-                        border: selectedImage === index ? '2px solid var(--mantine-color-blue-6)' : '2px solid transparent'
-                      }}
-                      onClick={() => setSelectedImage(index)}
-                    />
-                  ))}
-                </Group>
-              )}
+              <Group align="flex-start" gap={16} noWrap>
+                {/* Thumbnails - vertical column */}
+                {images.length > 1 && (
+                  <Stack gap={8} align="center" style={{ width: 60 }}>
+                    {images.map((img, index) => (
+                      <Image
+                        key={index}
+                        src={img.url}
+                        alt={`${product.name} ${index + 1}`}
+                        width={48}
+                        height={48}
+                        fit="contain"
+                        style={{
+                          background: '#f8f9fa',
+                          borderRadius: 6,
+                          cursor: 'pointer',
+                          border: selectedImage === index
+                            ? '2.5px solid var(--mantine-color-blue-6)'
+                            : '2px solid #e9ecef',
+                          boxShadow: selectedImage === index
+                            ? '0 0 0 2px var(--mantine-color-blue-2)'
+                            : 'none',
+                          opacity: selectedImage === index ? 1 : 0.85,
+                          transition: 'border 0.2s, box-shadow 0.2s, opacity 0.2s',
+                        }}  
+                        onClick={() => setSelectedImage(index)}
+                        onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                        onMouseLeave={e => (e.currentTarget.style.opacity = selectedImage === index ? '1' : '0.85')}
+                      />
+                    ))}
+                  </Stack>
+                )}
+
+                {/* Main Image */}
+                <div
+                  style={{
+                    width: 400,
+                    height: 500,
+                    background: '#f8f9fa',
+                    borderRadius: 8,
+                    boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Image
+                    src={mainImage}
+                    alt={product.name}
+                    width="100%"
+                    height="100%"
+                    fit="cover"
+                    style={{
+                      objectPosition: 'center',
+                      display: 'block',
+                    }}
+                    fallbackSrc="https://placehold.co/400x400?text=No+Image"
+                  />
+                </div>
+              </Group>
             </Stack>
           </Paper>
         </Grid.Col>
@@ -450,11 +479,11 @@ const ProductDetail = () => {
                 {product.isFeatured && <Badge color="blue">Featured</Badge>}
                 {product.isDiscounted && <Badge color="red">On Sale</Badge>}
               </Group>
-              
+
               <Title order={1} size="2rem" fw={700}>{product.name}</Title>
-              
+
               <Text size="lg" c="dimmed">{product.brand} • {product.category}</Text>
-              
+
               {product.tags && product.tags.length > 0 && (
                 <Group gap="xs">
                   {product.tags.slice(0, 5).map((tag, index) => (
@@ -578,6 +607,60 @@ const ProductDetail = () => {
         </Grid.Col>
       </Grid>
 
+      <Divider
+        my="xl"
+        size="xs"
+        style={{
+          borderTop: '2px solid rgba(0, 0, 0, 0.21)',
+          boxShadow: '0 1px 6px rgba(0, 0, 0, 0.16)',
+          opacity: 0.9,
+          width: '100%',
+        }}
+      />
+
+
+      {/* Similar Products */}
+      <Stack gap="lg" mt="xl">
+        <Title order={2} size="1.5rem" mb="sm">Similar Products</Title>
+        {loadingSimilar ? (
+          <Stack align="center" gap="md" py="xl">
+            <Loader size="lg" />
+            <Text>Loading similar products...</Text>
+          </Stack>
+        ) : similarProducts.length === 0 ? (
+          <Text c="dimmed">No similar products found.</Text>
+        ) : (
+          <>
+            <Grid gutter="md">
+              {similarProducts.map((prod) => (
+                <Grid.Col key={prod._id} span={{ base: 12, sm: 6, md: 4, lg: 3 }}>
+                  <ProductCard product={prod} />
+                </Grid.Col>
+              ))}
+            </Grid>
+            {similarProducts.length < similarTotal && (
+              <Group justify="center" mt="lg">
+                <Button onClick={handleLoadMoreSimilar} loading={loadingMoreSimilar} size="md" variant="light">
+                  Load More
+                </Button>
+              </Group>
+            )}
+          </>
+        )}
+      </Stack>
+
+      <Divider
+        my="xl"
+        size="xs"
+        style={{
+          borderTop: '2px solid rgba(0, 0, 0, 0.21)',
+          boxShadow: '0 1px 6px rgba(0, 0, 0, 0.16)',
+          opacity: 0.9,
+          width: '100%',
+        }}
+      />
+
+
       {/* Product Description */}
       <Paper radius="md" p="xl" withBorder shadow="sm" mt="xl">
         <Stack gap="lg">
@@ -615,7 +698,7 @@ const ProductDetail = () => {
             <Text fw={700} size="lg">
               {product.rating?.toFixed(1) || 0} / 5
             </Text>
-            {[1,2,3,4,5].map(i => (
+            {[1, 2, 3, 4, 5].map(i => (
               i <= Math.round(product.rating)
                 ? <IconStarFilled key={i} size={18} color="#fab005" />
                 : <IconStar key={i} size={18} color="#fab005" />
@@ -778,35 +861,7 @@ const ProductDetail = () => {
         </Paper>
       )}
 
-      {/* Similar Products */}
-      <Stack gap="lg" mt="xl">
-        <Title order={2} size="1.5rem" mb="sm">Similar Products</Title>
-        {loadingSimilar ? (
-          <Stack align="center" gap="md" py="xl">
-            <Loader size="lg" />
-            <Text>Loading similar products...</Text>
-          </Stack>
-        ) : similarProducts.length === 0 ? (
-          <Text c="dimmed">No similar products found.</Text>
-        ) : (
-          <>
-            <Grid gutter="md">
-              {similarProducts.map((prod) => (
-                <Grid.Col key={prod._id} span={{ base: 12, sm: 6, md: 4, lg: 3 }}>
-                  <ProductCard product={prod} />
-                </Grid.Col>
-              ))}
-            </Grid>
-            {similarProducts.length < similarTotal && (
-              <Group justify="center" mt="lg">
-                <Button onClick={handleLoadMoreSimilar} loading={loadingMoreSimilar} size="md" variant="light">
-                  Load More
-                </Button>
-              </Group>
-            )}
-          </>
-        )}
-      </Stack>
+
     </Container>
   );
 };

@@ -7,13 +7,13 @@ import axios from "axios";
 // Map categories to Tabler icons and colors
 const CATEGORY_ICONS = {
   "TV & Audio": { icon: IconDeviceTv, color: "blue" },
-  "Mobile Phones": { icon: IconDeviceMobile, color: "green" },
-  "Kitchen Appliances": { icon: IconToolsKitchen2, color: "orange" },
-  "Laptops": { icon: IconDeviceLaptop, color: "purple" },
-  "Refrigerators": { icon: IconFridge, color: "cyan" },
-  "Washing Machines": { icon: IconWashMachine, color: "pink" },
-  "Air Conditioners": { icon: IconWindmill, color: "teal" },
-  "Small Gadgets": { icon: IconDeviceWatch, color: "gray" },
+  "Mobile Phones": { icon: IconDeviceMobile, color: "blue" },
+  "Kitchen Appliances": { icon: IconToolsKitchen2, color: "blue" },
+  "Laptops": { icon: IconDeviceLaptop, color: "blue" },
+  "Refrigerators": { icon: IconFridge, color: "blue" },
+  "Washing Machines": { icon: IconWashMachine, color: "blue" },
+  "Air Conditioners": { icon: IconWindmill, color: "blue" },
+  "Small Gadgets": { icon: IconDeviceWatch, color: "blue" },
 };
 
 const fetchCategories = async () => {

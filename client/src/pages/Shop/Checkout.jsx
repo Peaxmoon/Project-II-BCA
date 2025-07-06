@@ -234,8 +234,7 @@ const Checkout = () => {
                     placeholder="Choose payment method"
                     data={[
                       { value: 'cod', label: 'Cash on Delivery' },
-                      { value: 'card', label: 'Credit/Debit Card' },
-                      { value: 'bank', label: 'Bank Transfer' }
+                      { value: 'khalti', label: 'Khalti Payment' }
                     ]}
                     value={formData.paymentMethod}
                     onChange={(value) => handleChange('paymentMethod', value)}
