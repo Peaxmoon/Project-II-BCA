@@ -495,7 +495,7 @@ export const getProductReviews = async (req, res) => {
   const { page = 1, limit = 2, userOnly = false } = req.query;
   const userId = req.user?._id?.toString();
 
-  const product = await Product.findById(id).select('reviews');
+  const product = await Product.findById(id).select('reviews numReviews');
   if (!product) return res.status(404).json({ message: "Product not found" });
 
   let reviews = product.reviews.map(r => ({
@@ -508,7 +508,10 @@ export const getProductReviews = async (req, res) => {
   // If userOnly, return only the user's review (if any)
   if (userOnly && userId) {
     const userReview = reviews.find(r => r.isUserReview);
-    return res.json(userReview ? [userReview] : []);
+    return res.json({
+      reviews: userReview ? [userReview] : [],
+      total: product.numReviews || reviews.length
+    });
   }
 
   // Sort: user review first (if exists), then by likesCount desc, then by createdAt desc
@@ -519,22 +522,14 @@ export const getProductReviews = async (req, res) => {
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
-  // Always show user's review at the top if exists, then top liked reviews
-  let resultReviews = [];
-  const userReview = reviews.find(r => r.isUserReview);
-  if (userReview) resultReviews.push(userReview);
+  // Pagination
+  const skip = (Number(page) - 1) * Number(limit);
+  const paginatedReviews = reviews.slice(skip, skip + Number(limit));
 
-  // Remove user review from the rest
-  const rest = reviews.filter(r => !r.isUserReview);
-
-  // If user has review, show their review + top (limit-1) others, else top limit reviews
-  if (userReview) {
-    resultReviews = resultReviews.concat(rest.slice(0, limit - 1));
-  } else {
-    resultReviews = rest.slice(0, limit);
-  }
-
-  res.json(resultReviews);
+  res.json({
+    reviews: paginatedReviews,
+    total: product.numReviews || reviews.length
+  });
 };
 
 // Like/unlike a review

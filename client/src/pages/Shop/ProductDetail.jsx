@@ -64,7 +64,11 @@ const ProductDetail = () => {
   const [likeLoading, setLikeLoading] = useState({}); // { [reviewId]: boolean }
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editReview, setEditReview] = useState(null);
+  const [reviewPage, setReviewPage] = useState(1); // <-- pagination state
+  const [reviewTotal, setReviewTotal] = useState(0); // <-- total reviews
+  const [loadingMoreReviews, setLoadingMoreReviews] = useState(false);
   const SIMILAR_PAGE_SIZE = 8;
+  const REVIEWS_PAGE_SIZE = 3;
 
   const { addToCart } = useCart();
   const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
@@ -145,30 +149,61 @@ const ProductDetail = () => {
     // eslint-disable-next-line
   }, [product]);
 
-  // Fetch reviews when product loads
+  // Fetch reviews when product loads or page changes
   useEffect(() => {
     if (!product) return;
     setReviewLoading(true);
-    // Fetch from the correct endpoint to get like info
-    api.get(`/products/${product._id}/reviews`, {
+    api.get(`/products/${product._id}/reviews?page=${reviewPage}&limit=${REVIEWS_PAGE_SIZE}`, {
       headers: user?.token ? { Authorization: `Bearer ${user.token}` } : undefined,
     })
       .then(res => {
-        setReviews(res.data || []);
+        // Use res.data.reviews and res.data.total
+        const reviewArr = Array.isArray(res.data.reviews) ? res.data.reviews : res.data;
+        let userHasReviewed = false;
+        let userReview = { rating: 0, comment: '' };
         if (user) {
-          const found = res.data?.find(r => r.user === user.id || r.user?._id === user.id);
+          // Always check in the full reviews array, not just the current page
+          const found = reviewArr.find(r => r.user === user.id || r.user?._id === user.id);
           if (found) {
-            setAlreadyReviewed(true);
-            setMyReview({ rating: found.rating, comment: found.comment });
-          } else {
-            setAlreadyReviewed(false);
-            setMyReview({ rating: 0, comment: '' });
+            userHasReviewed = true;
+            userReview = { rating: found.rating, comment: found.comment };
           }
         }
+        if (reviewPage === 1) {
+          setReviews(reviewArr || []);
+          setAlreadyReviewed(userHasReviewed);
+          setMyReview(userReview);
+        } else {
+          setReviews(prev => {
+            // Merge new reviews, but if user review is present, ensure alreadyReviewed is set
+            const merged = [...prev, ...(reviewArr || [])];
+            if (user && !userHasReviewed) {
+              const found = merged.find(r => r.user === user.id || r.user?._id === user.id);
+              if (found) {
+                userHasReviewed = true;
+                userReview = { rating: found.rating, comment: found.comment };
+              }
+            }
+            setAlreadyReviewed(userHasReviewed);
+            setMyReview(userReview);
+            return merged;
+          });
+        }
+        setReviewTotal(res.data.total || reviewArr.length || 0);
       })
-      .catch(() => setReviews([]))
+      .catch(() => {
+        setReviews([]);
+        setAlreadyReviewed(false);
+        setMyReview({ rating: 0, comment: '' });
+      })
       .finally(() => setReviewLoading(false));
-  }, [product, user]);
+    // eslint-disable-next-line
+  }, [product, user, reviewPage]);
+
+  // Reset reviews when product changes
+  useEffect(() => {
+    setReviewPage(1);
+  }, [product]);
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -202,6 +237,13 @@ const ProductDetail = () => {
 
   const handleLoadMoreSimilar = () => {
     fetchSimilar(similarPage + 1, true);
+  };
+
+  // Handler for loading more reviews
+  const handleLoadMoreReviews = () => {
+    setLoadingMoreReviews(true);
+    setReviewPage(prev => prev + 1);
+    setLoadingMoreReviews(false);
   };
 
   const isWishlisted = wishlist?.some(item =>
@@ -244,6 +286,7 @@ const ProductDetail = () => {
                 : r
             )
           );
+          setAlreadyReviewed(true); // Ensure alreadyReviewed stays true
         }
       } else {
         await api.post(`/products/${product._id}/reviews`, payload);
@@ -311,7 +354,7 @@ const ProductDetail = () => {
     try {
       await api.delete(`/products/${product._id}/reviews/${reviewId}`);
       setReviews(revs => revs.filter(r => r._id !== reviewId));
-      setAlreadyReviewed(false);
+      setAlreadyReviewed(false); // Allow user to add a new review after deletion
       setMyReview({ rating: 0, comment: '' });
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete review.");
@@ -342,10 +385,43 @@ const ProductDetail = () => {
       );
       setEditModalOpen(false);
       setMyReview({ rating: Number(editReview.rating), comment: editReview.comment });
+      setAlreadyReviewed(true); // Ensure alreadyReviewed stays true after edit
     } catch (err) {
       alert(err.response?.data?.message || "Failed to update review.");
     }
   };
+
+  // Helper: is user's review in the currently displayed reviews?
+  const isUserReviewInCurrentPage = () => {
+    if (!user) return false;
+    return reviews.some(r => r.user === user.id || r.user?._id === user.id);
+  };
+
+  // Helper: has the user already reviewed (across all pages)?
+  const hasUserReviewed = React.useMemo(() => {
+    if (!user) return false;
+    // Check in all loaded reviews
+    return reviews.some(r => r.user === user.id || r.user?._id === user.id);
+  }, [user, reviews]);
+
+  // Helper: check if user has reviewed by querying the backend (not just loaded reviews)
+  const [dbUserHasReviewed, setDbUserHasReviewed] = useState(false);
+
+  useEffect(() => {
+    if (!product || !user) {
+      setDbUserHasReviewed(false);
+      return;
+    }
+    // Query backend for userOnly review
+    api.get(`/products/${product._id}/reviews?userOnly=true`, {
+      headers: { Authorization: `Bearer ${user.token}` }
+    })
+      .then(res => {
+        const arr = Array.isArray(res.data.reviews) ? res.data.reviews : res.data;
+        setDbUserHasReviewed(arr && arr.length > 0);
+      })
+      .catch(() => setDbUserHasReviewed(false));
+  }, [product, user]);
 
   if (loading) {
     return (
@@ -704,17 +780,17 @@ const ProductDetail = () => {
                 : <IconStar key={i} size={18} color="#fab005" />
             ))}
             <Text size="sm" c="dimmed" ml={8}>
-              {product.numReviews || reviews.length} review{(product.numReviews || reviews.length) === 1 ? '' : 's'}
+              {product.numReviews || reviewTotal || reviews.length} review{(product.numReviews || reviewTotal || reviews.length) === 1 ? '' : 's'}
             </Text>
           </Group>
-          {/* Top 2-3 reviews */}
+          {/* Reviews */}
           {reviewLoading ? (
             <Group align="center" gap="md"><Loader size="sm" /><Text>Loading reviews...</Text></Group>
           ) : reviews.length === 0 ? (
             <Text c="dimmed">No reviews yet. Be the first to review this product!</Text>
           ) : (
             <Stack gap="md">
-              {reviews.slice(0, 3).map((review, idx) => (
+              {reviews.map((review, idx) => (
                 <Paper key={review._id || idx} p="md" withBorder>
                   <Group gap="xs" align="center">
                     <Text fw={600}>{review.name || 'Anonymous'}</Text>
@@ -755,25 +831,26 @@ const ProductDetail = () => {
                   <Text size="sm" mt={4}>{review.comment}</Text>
                 </Paper>
               ))}
-              {reviews.length > 3 && (
+              {/* Load More Reviews Button */}
+              {reviews.length < reviewTotal && (
                 <Button
-                  component={Link}
-                  to={`/products/${product._id}/reviews`}
-                  variant="subtle"
+                  onClick={handleLoadMoreReviews}
+                  loading={loadingMoreReviews}
                   size="sm"
+                  variant="light"
                   style={{ alignSelf: 'flex-start' }}
                 >
-                  View all reviews
+                  Load More Reviews
                 </Button>
               )}
             </Stack>
           )}
           {/* Review Form */}
-          {user && (
+          {user && !dbUserHasReviewed && (
             <Paper p="md" withBorder>
               <form onSubmit={handleReviewSubmit}>
                 <Stack gap="sm">
-                  <Text fw={600}>{alreadyReviewed ? "Edit Your Review" : "Leave a Review"}</Text>
+                  <Text fw={600}>Leave a Review</Text>
                   <Rating
                     value={myReview.rating}
                     onChange={value => setMyReview(r => ({ ...r, rating: value }))
@@ -790,7 +867,7 @@ const ProductDetail = () => {
                     required
                   />
                   <Button type="submit" loading={reviewSubmitting} disabled={reviewSubmitting || !myReview.rating || !myReview.comment}>
-                    {alreadyReviewed ? "Update Review" : "Submit Review"}
+                    Submit Review
                   </Button>
                   {reviewError && <Alert color="red">{reviewError}</Alert>}
                 </Stack>

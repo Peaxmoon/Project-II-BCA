@@ -15,6 +15,16 @@ import Features from '../pages/Features'
 import TrackOrder from '../pages/TrackOrder'
 import Wishlist from '../pages/Wishlist'
 import ProductReviews from '../pages/Shop/ProductReviews'
+import { useAuth } from '../contexts/AuthContext'
+
+// AdminRoute wrapper
+const AdminRoute = ({ children }) => {
+  const { user } = useAuth();
+  if (!user || user.role !== 'admin') {
+    return <NotFound />;
+  }
+  return children;
+};
 
 const AppRoutes = () => (
   <Routes>
@@ -27,7 +37,11 @@ const AppRoutes = () => (
     <Route path="/profile" element={<Profile />} />
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
-    <Route path="/admin/*" element={<Admin />} />
+    <Route path="/admin/*" element={
+      <AdminRoute>
+        <Admin />
+      </AdminRoute>
+    } />
     <Route path="/features" element={<Features />} />
     <Route path="/track-order" element={<TrackOrder />} />
     <Route path="/wishlist" element={<Wishlist />} />
