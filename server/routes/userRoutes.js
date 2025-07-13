@@ -1,6 +1,6 @@
 import express from "express";
 import { createUser, deleteUser, loginUser, logoutUser, updateUser, userDetails, userLists, verifyEmailCode, resendVerificationCode, changePassword, changeUserName, updateUserRole } from "../controllers/userController.js";
-import { createProduct } from "../controllers/productController.js";
+import { createProduct } from "../controllers/product/index.js";
 import { upload } from "../middleware/multerMiddleware.js";
 import { refreshAccessToken } from "../utils/generateToken.js";
 import { verifyToken } from "../middleware/authMiddleware.js";

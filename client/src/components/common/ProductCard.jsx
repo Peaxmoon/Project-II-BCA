@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { IconHeart, IconHeartFilled, IconStar, IconStarFilled, IconMessageCircle2 } from '@tabler/icons-react';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Add a new prop: compact (for cart view)
 const ProductCard = ({
@@ -32,6 +33,7 @@ const ProductCard = ({
 
   const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { user } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const [isCartLoading, setIsCartLoading] = useState(false);
@@ -45,6 +47,10 @@ const ProductCard = ({
   const handleWishlistToggle = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!user) {
+      alert('Please log in to add items to wishlist');
+      return;
+    }
     setIsWishlistLoading(true);
     try {
       if (isWishlisted) {
@@ -62,6 +68,10 @@ const ProductCard = ({
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!user) {
+      alert('Please log in to add items to cart');
+      return;
+    }
     setIsCartLoading(true);
     try {
       await addToCart(_id, 1);

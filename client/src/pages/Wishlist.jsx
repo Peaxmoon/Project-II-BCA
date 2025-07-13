@@ -110,6 +110,21 @@ const Wishlist = () => {
             <Loader size="lg" />
             <Text>Loading your wishlist...</Text>
           </Stack>
+        ) : error && (error.toLowerCase().includes('log in') || error.toLowerCase().includes('unauthorized')) ? (
+          <Alert icon={<IconAlertCircle size={16} />} color="blue" title="Login Required">
+            <Stack gap="md">
+              <Text>Please log in to view and manage your wishlist.</Text>
+              <Button
+                component={Link}
+                to="/auth/login"
+                variant="filled"
+                color="blue"
+                size="sm"
+              >
+                Login Now
+              </Button>
+            </Stack>
+          </Alert>
         ) : error ? (
           <Alert icon={<IconAlertCircle size={16} />} color="red" title="Error">
             {error}

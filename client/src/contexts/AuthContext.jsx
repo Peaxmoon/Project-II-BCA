@@ -41,7 +41,9 @@ export const AuthProvider = ({ children }) => {
         setLoading(false)
       }
     }
-    fetchUser()
+    const token = getToken();
+    if (!token) return; // Only fetch if token exists
+    fetchUser();
   }, [])
 
   const login = async (email, password) => {

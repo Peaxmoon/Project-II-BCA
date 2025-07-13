@@ -32,6 +32,7 @@ import {
   IconTrash
 } from '@tabler/icons-react';
 import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 // --- Debounce utility ---
 function useDebouncedCallback(callback, delay) {
@@ -43,6 +44,7 @@ function useDebouncedCallback(callback, delay) {
 }
 
 const Cart = () => {
+    const { user } = useAuth();
   const { cart, loading, error, updateCartItem, removeCartItem, clearCart } = useCart();
   const [products, setProducts] = useState([]);
   const [fetching, setFetching] = useState(false);
@@ -62,8 +64,15 @@ const Cart = () => {
   );
 
   useEffect(() => {
+    if (!productIds || fetching) return; // Avoid duplicate fetches
+    if (!user) {
+      setProducts([]);
+      setFetching(false);
+      return;
+    }
     if (!productIds) {
       setProducts([]);
+      setFetching(false);
       return;
     }
     setFetching(true);
@@ -71,7 +80,7 @@ const Cart = () => {
       .then(res => setProducts(res.data.products || []))
       .catch(() => setProducts([]))
       .finally(() => setFetching(false));
-  }, [productIds]);
+  }, [productIds, user]);
 
   const [updating, setUpdating] = useState({}); // { [productId]: boolean }
 
@@ -161,9 +170,20 @@ const Cart = () => {
               <Loader size="md" />
               <Text>Loading...</Text>
             </Group>
-          ) : error && error.toLowerCase().includes('unauthorized') ? (
-            <Alert color="red" title="Authentication Required" icon={<IconAlertCircle size={16} />}>
-              Please log in to view your cart.
+          ) : error && (error.toLowerCase().includes('unauthorized') || error.toLowerCase().includes('log in')) ? (
+            <Alert color="blue" title="Login Required" icon={<IconAlertCircle size={16} />}>
+              <Stack gap="md">
+                <Text>Please log in to view and manage your cart.</Text>
+                <Button
+                  component={Link}
+                  to="/auth/login"
+                  variant="filled"
+                  color="blue"
+                  size="sm"
+                >
+                  Login Now
+                </Button>
+              </Stack>
             </Alert>
           ) : localCartItems.length === 0 ? (
             <Group align="center" justify="center" py="xl" style={{ minHeight: 180 }}>

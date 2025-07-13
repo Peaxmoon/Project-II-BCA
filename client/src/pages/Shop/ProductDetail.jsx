@@ -41,6 +41,7 @@ import { useWishlist } from '../../contexts/WishlistContext';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import ProductCard from '../../components/common/ProductCard';
+import ProductReviews from './ProductReviews';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -207,6 +208,11 @@ const ProductDetail = () => {
 
   const handleAddToCart = async () => {
     if (!product) return;
+    if (!user) {
+      // Show login prompt instead of adding to cart
+      alert('Please log in to add items to cart');
+      return;
+    }
     setAddingToCart(true);
     try {
       await addToCart(product._id, quantity);
@@ -220,6 +226,11 @@ const ProductDetail = () => {
 
   const handleWishlistToggle = async () => {
     if (!product) return;
+    if (!user) {
+      // Show login prompt instead of toggling wishlist
+      alert('Please log in to add items to wishlist');
+      return;
+    }
     try {
       const isWishlisted = wishlist?.some(item =>
         typeof item === 'string' ? item === product._id : item._id === product._id
@@ -480,8 +491,10 @@ const ProductDetail = () => {
         <Grid.Col span={{ base: 12, md: 6 }}>
           <Paper radius="md" p="md" withBorder>
             <Stack gap="md">
-              <Group align="flex-start" gap={16} noWrap>
-                {/* Thumbnails - vertical column */}
+              <Group align="flex-start" gap={16} >
+                
+                {/* noWrap was in above group 
+                Thumbnails - vertical column */}
                 {images.length > 1 && (
                   <Stack gap={8} align="center" style={{ width: 60 }}>
                     {images.map((img, index) => (
@@ -766,149 +779,9 @@ const ProductDetail = () => {
         </Paper>
       )}
 
-      {/* --- Reviews Section --- */}
-      <div ref={reviewSectionRef} />
-      <Paper radius="md" p="xl" withBorder shadow="sm" mt="lg">
-        <Stack gap="lg">
-          <Group gap="xs" align="center">
-            <Text fw={700} size="lg">
-              {product.rating?.toFixed(1) || 0} / 5
-            </Text>
-            {[1, 2, 3, 4, 5].map(i => (
-              i <= Math.round(product.rating)
-                ? <IconStarFilled key={i} size={18} color="#fab005" />
-                : <IconStar key={i} size={18} color="#fab005" />
-            ))}
-            <Text size="sm" c="dimmed" ml={8}>
-              {product.numReviews || reviewTotal || reviews.length} review{(product.numReviews || reviewTotal || reviews.length) === 1 ? '' : 's'}
-            </Text>
-          </Group>
-          {/* Reviews */}
-          {reviewLoading ? (
-            <Group align="center" gap="md"><Loader size="sm" /><Text>Loading reviews...</Text></Group>
-          ) : reviews.length === 0 ? (
-            <Text c="dimmed">No reviews yet. Be the first to review this product!</Text>
-          ) : (
-            <Stack gap="md">
-              {reviews.map((review, idx) => (
-                <Paper key={review._id || idx} p="md" withBorder>
-                  <Group gap="xs" align="center">
-                    <Text fw={600}>{review.name || 'Anonymous'}</Text>
-                    {review.isVerifiedPurchaser && (
-                      <Badge color="green" size="xs">Verified Purchaser</Badge>
-                    )}
-                    <Rating value={review.rating} readOnly size="sm" />
-                    {/* Like button and count */}
-                    <Group gap={4} ml="auto">
-                      <ActionIcon
-                        variant={review.isLikedByUser ? "filled" : "light"}
-                        color={review.isLikedByUser ? "blue" : "gray"}
-                        size="sm"
-                        onClick={() => handleLikeReview(review._id)}
-                        loading={!!likeLoading[review._id]}
-                        disabled={!user}
-                        title={review.isLikedByUser ? "Unlike" : "Like"}
-                      >
-                        {review.isLikedByUser ? <IconThumbUpFilled size={18} /> : <IconThumbUp size={18} />}
-                      </ActionIcon>
-                      <Text size="xs" fw={600}>{review.likesCount || 0}</Text>
-                      {/* 3-dot menu for user's own review */}
-                      {user && (review.user === user.id || review.user?._id === user.id) && (
-                        <Menu withinPortal position="bottom-end" shadow="md">
-                          <Menu.Target>
-                            <ActionIcon size="sm" variant="subtle" color="gray" style={{ marginLeft: 8 }}>
-                              <span style={{ fontSize: 20, fontWeight: 700 }}>⋮</span>
-                            </ActionIcon>
-                          </Menu.Target>
-                          <Menu.Dropdown>
-                            <Menu.Item onClick={() => handleEditReview(review)}>Update</Menu.Item>
-                            <Menu.Item color="red" onClick={() => handleDeleteReview(review._id)}>Delete</Menu.Item>
-                          </Menu.Dropdown>
-                        </Menu>
-                      )}
-                    </Group>
-                  </Group>
-                  <Text size="sm" mt={4}>{review.comment}</Text>
-                </Paper>
-              ))}
-              {/* Load More Reviews Button */}
-              {reviews.length < reviewTotal && (
-                <Button
-                  onClick={handleLoadMoreReviews}
-                  loading={loadingMoreReviews}
-                  size="sm"
-                  variant="light"
-                  style={{ alignSelf: 'flex-start' }}
-                >
-                  Load More Reviews
-                </Button>
-              )}
-            </Stack>
-          )}
-          {/* Review Form */}
-          {user && !dbUserHasReviewed && (
-            <Paper p="md" withBorder>
-              <form onSubmit={handleReviewSubmit}>
-                <Stack gap="sm">
-                  <Text fw={600}>Leave a Review</Text>
-                  <Rating
-                    value={myReview.rating}
-                    onChange={value => setMyReview(r => ({ ...r, rating: value }))
-                    }
-                    size="lg"
-                    required
-                  />
-                  <Textarea
-                    placeholder="Write your review..."
-                    value={myReview.comment}
-                    onChange={e => setMyReview(r => ({ ...r, comment: e.target.value }))
-                    }
-                    minRows={3}
-                    required
-                  />
-                  <Button type="submit" loading={reviewSubmitting} disabled={reviewSubmitting || !myReview.rating || !myReview.comment}>
-                    Submit Review
-                  </Button>
-                  {reviewError && <Alert color="red">{reviewError}</Alert>}
-                </Stack>
-              </form>
-            </Paper>
-          )}
-          {/* Edit Review Modal */}
-          <Modal
-            opened={editModalOpen}
-            onClose={() => setEditModalOpen(false)}
-            title="Update Your Review"
-            centered
-            size="sm"
-          >
-            {editReview && (
-              <form onSubmit={handleEditReviewSubmit}>
-                <Stack gap="sm">
-                  <Rating
-                    value={editReview.rating}
-                    onChange={value => setEditReview(r => ({ ...r, rating: value }))
-                    }
-                    size="lg"
-                    required
-                  />
-                  <Textarea
-                    placeholder="Write your review..."
-                    value={editReview.comment}
-                    onChange={e => setEditReview(r => ({ ...r, comment: e.target.value }))
-                    }
-                    minRows={3}
-                    required
-                  />
-                  <Button type="submit" loading={reviewSubmitting} disabled={reviewSubmitting || !editReview.rating || !editReview.comment}>
-                    Update Review
-                  </Button>
-                </Stack>
-              </form>
-            )}
-          </Modal>
-        </Stack>
-      </Paper>
+
+      <ProductReviews />
+
 
       {/* Shipping Info */}
       {product.shippingInfo && (

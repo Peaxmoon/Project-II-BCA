@@ -14,6 +14,7 @@ export function WishlistProvider({ children }) {
   const { user } = useAuth();
   const [wishlist, setWishlist] = useState([]); // Array of product objects (if logged in) or IDs (if guest)
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Helper: get localStorage wishlist (array of product IDs)
   const getLocalWishlist = () => {
@@ -32,48 +33,61 @@ export function WishlistProvider({ children }) {
   // Fetch wishlist from API or localStorage
   const fetchWishlist = useCallback(async () => {
     setLoading(true);
-    if (user) {
-      // Logged in: fetch from API
-      try {
-        const res = await api.get('/wishlist');
-        setWishlist(res.data);
-      } catch {
-        setWishlist([]);
-      }
-    } else {
-      // Guest: from localStorage
-      setWishlist(getLocalWishlist());
+    setError(null);
+    
+    if (!user) {
+      // User not logged in - show empty wishlist with message
+      setWishlist([]);
+      setError('Please log in to view your wishlist');
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+    
+    try {
+      // Logged in: fetch from API
+      const res = await api.get('/wishlist');
+      setWishlist(res.data);
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setError('Please log in to view your wishlist');
+      } else {
+        setError(err.response?.data?.message || 'Failed to fetch wishlist');
+      }
+      setWishlist([]);
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
 
   // Add to wishlist
   const addToWishlist = async (product) => {
-    if (user) {
+    if (!user) {
+      setError('Please log in to add items to wishlist');
+      throw new Error('Please log in to add items to wishlist');
+    }
+    
+    try {
       await api.post(`/wishlist/${product._id || product}`);
       fetchWishlist();
-    } else {
-      // product can be object or ID
-      const id = product._id || product;
-      const ids = getLocalWishlist();
-      if (!ids.includes(id)) {
-        const newIds = [...ids, id];
-        setLocalWishlist(newIds);
-        setWishlist(newIds);
-      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to add to wishlist');
+      throw err;
     }
   };
 
   // Remove from wishlist
   const removeFromWishlist = async (product) => {
-    if (user) {
+    if (!user) {
+      setError('Please log in to remove items from wishlist');
+      throw new Error('Please log in to remove items from wishlist');
+    }
+    
+    try {
       await api.delete(`/wishlist/${product._id || product}`);
       fetchWishlist();
-    } else {
-      const id = product._id || product;
-      const ids = getLocalWishlist().filter(pid => pid !== id);
-      setLocalWishlist(ids);
-      setWishlist(ids);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to remove from wishlist');
+      throw err;
     }
   };
 
@@ -97,7 +111,7 @@ export function WishlistProvider({ children }) {
   }, [user]);
 
   return (
-    <WishlistContext.Provider value={{ wishlist, addToWishlist, removeFromWishlist, loading }}>
+    <WishlistContext.Provider value={{ wishlist, addToWishlist, removeFromWishlist, loading, error }}>
       {children}
     </WishlistContext.Provider>
   );

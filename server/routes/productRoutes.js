@@ -12,7 +12,11 @@ import {
   likeProductReview,
   updateProductReview, // <-- add this import
   searchProducts,
-} from "../controllers/productController.js";
+} from '../controllers/product/index.js';
+
+
+
+
 import { uploadMiddleware, cleanupTempFiles } from "../middleware/multerMiddleware.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 import { requireRole } from "../middleware/roleMiddleware.js";
