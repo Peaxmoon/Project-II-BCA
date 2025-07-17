@@ -76,7 +76,7 @@ const productSchema = new mongoose.Schema({
     sparse: true
   },
   
-  isFeatured: {//you can display this product in a "Featured Products" section, homepage carousel, or for promotional/advertising purposes. 
+  isFeatured: {//display this product in a "Featured Products" section, homepage carousel, or for promotional/advertising purposes. 
     type: Boolean,
     default: false
   },

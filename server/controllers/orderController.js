@@ -1,4 +1,7 @@
 import Order from '../models/Order.js';
+import sgMail from '@sendgrid/mail';
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Utility function for role check
 function hasRole(user, roles = []) {
@@ -9,10 +12,54 @@ function hasRole(user, roles = []) {
 // Create order
 export const createOrder = async (req, res) => {
   try {
-    const order = new Order({ ...req.body, user: req.user._id });
-    const savedOrder = await order.save();
-    res.status(201).json(savedOrder);
+    const {
+      orderItems,
+      shippingAddress,
+      paymentMethod,
+      itemsPrice,
+      shippingPrice,
+      taxPrice,
+      totalPrice,
+      isPaid
+    } = req.body;
+
+    const order = new Order({
+      user: req.user._id, // <-- if req.user is missing, this will fail!
+      orderItems,
+      shippingAddress,
+      paymentMethod,
+      itemsPrice,
+      shippingPrice,
+      taxPrice,
+      totalPrice,
+      isPaid: paymentMethod === 'cod' ? false : !!isPaid,
+      orderStatus: 'processing',
+      paidAt: paymentMethod === 'cod' ? null : new Date(),
+    });
+
+    await order.save();
+
+    // Send confirmation email for COD
+    if (paymentMethod === 'cod') {
+      const msg = {
+        to: req.user.email,
+        from: 'support@sujjalkhadka.com.np',
+        subject: 'Order Confirmation - Cash on Delivery',
+        html: `
+          <h2>Thank you for your order!</h2>
+          <p>Your order <b>#${order._id}</b> has been placed successfully with <b>Cash on Delivery</b>.</p>
+          <p>Order Total: <b>रु${order.totalPrice}</b></p>
+          <p>We will contact you soon to confirm delivery details.</p>
+          <hr>
+          <p>If you have any questions, reply to this email or call our support hotline.</p>
+        `
+      };
+      await sgMail.send(msg);
+    }
+
+    res.status(201).json(order);
   } catch (error) {
+    console.error('Order creation error:', error); // Add this line
     res.status(500).json({ message: "Error creating order", error: error.message });
   }
 };

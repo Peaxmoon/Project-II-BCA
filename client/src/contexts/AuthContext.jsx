@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Login and get token from response
       const res = await api.post('/users/login', { email, password })
-      const token = res.data?.token;
+      const token = res.data?.token; // <-- always undefined!
       if (token) {
         setToken(token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;

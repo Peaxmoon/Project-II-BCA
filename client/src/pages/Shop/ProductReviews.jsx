@@ -270,8 +270,8 @@ const ProductReviews = () => {
         {sortedReviews.length === 0 ? (
           <Text c="dimmed">No reviews yet. Be the first to review this product!</Text>
         ) : (
-          sortedReviews.map((review, idx) => (
-            <Paper key={review._id || idx} p="md" withBorder>
+          sortedReviews.map((review) => (
+            <Paper key={review._id} p="md" withBorder>
               <Group gap="xs" align="center">
                 <Text fw={600}>{review.name || 'Anonymous'}</Text>
                 {review.isVerifiedPurchaser && (

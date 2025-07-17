@@ -68,11 +68,9 @@ const userSchema = new mongoose.Schema({
 
   socialProvider: {
     type: String,
-    // enum: ['google', 'facebook', 'email'],
     default: 'email',
   },
 
-  // Refresh Token in database
   refreshTokens: [{ type: String }],
 
   // Wishlist: array of product ObjectIds

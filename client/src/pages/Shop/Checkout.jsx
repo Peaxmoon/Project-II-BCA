@@ -75,19 +75,17 @@ const Checkout = () => {
         },
         paymentMethod: formData.paymentMethod,
         itemsPrice: cart.totalPrice,
-        shippingPrice: 0, // Free shipping
-        taxPrice: Math.round(cart.totalPrice * 0.13), // 13% tax
-        totalPrice: Math.round(cart.totalPrice * 1.13)
+        shippingPrice: 0,
+        taxPrice: Math.round(cart.totalPrice * 0.13),
+        totalPrice: Math.round(cart.totalPrice * 1.13),
+        isPaid: formData.paymentMethod === 'cod' ? false : true, // <-- COD is unpaid
       };
 
-      // Use correct API endpoint
-      const response = await api.post('/api/orders', orderData);
+      const response = await api.post('/orders', orderData);
 
-      // Clear cart after successful order
-      if (cart.clearCart) await cart.clearCart(); // If clearCart is available in context
+      if (cart.clearCart) await cart.clearCart();
 
-      // Redirect to order confirmation
-      navigate(`/orders?success=true&orderId=${response.data._id}`);
+      navigate('/order-confirmation', { state: { orderId: response.data._id, totalPrice: response.data.totalPrice } });
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to place order. Please try again.');
     } finally {
