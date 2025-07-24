@@ -14,7 +14,10 @@ import {
   Badge, 
   Divider,
   Loader,
-  Timeline
+  Timeline,
+  CopyButton,
+  ActionIcon,
+  Tooltip
 } from '@mantine/core';
 import { 
   IconAlertCircle, 
@@ -22,7 +25,8 @@ import {
   IconPackage, 
   IconCheck, 
   IconClock,
-  IconSearch
+  IconSearch,
+  IconCopy
 } from '@tabler/icons-react';
 import api from '../services/api';
 
@@ -122,17 +126,27 @@ const TrackOrder = () => {
       }
     ];
 
+    if (order.orderStatus === 'pending') {
+      items.push({
+        title: 'Pending',
+        description: 'Your order is pending and awaiting processing',
+        date: new Date(order.createdAt).toLocaleDateString(),
+        color: 'gray',
+        icon: IconClock
+      });
+    }
+
     if (order.isPaid) {
       items.push({
         title: 'Payment Confirmed',
         description: 'Payment has been received and confirmed',
-        date: new Date(order.paidAt).toLocaleDateString(),
+        date: order.paidAt ? new Date(order.paidAt).toLocaleDateString() : new Date(order.createdAt).toLocaleDateString(),
         color: 'green',
         icon: IconCheck
       });
     }
 
-    if (order.orderStatus === 'processing') {
+    if (["processing", "shipped", "delivered", "cancelled"].includes(order.orderStatus)) {
       items.push({
         title: 'Processing',
         description: 'Your order is being prepared for shipment',
@@ -142,11 +156,11 @@ const TrackOrder = () => {
       });
     }
 
-    if (order.orderStatus === 'shipped') {
+    if (["shipped", "delivered", "cancelled"].includes(order.orderStatus)) {
       items.push({
         title: 'Shipped',
         description: 'Your order has been shipped',
-        date: new Date(order.createdAt).toLocaleDateString(),
+        date: order.shippedAt ? new Date(order.shippedAt).toLocaleDateString() : new Date(order.updatedAt || order.createdAt).toLocaleDateString(),
         color: 'orange',
         icon: IconTruck
       });
@@ -156,7 +170,7 @@ const TrackOrder = () => {
       items.push({
         title: 'Delivered',
         description: 'Your order has been delivered',
-        date: new Date(order.deliveredAt).toLocaleDateString(),
+        date: order.deliveredAt ? new Date(order.deliveredAt).toLocaleDateString() : new Date(order.updatedAt || order.createdAt).toLocaleDateString(),
         color: 'green',
         icon: IconCheck
       });
@@ -166,7 +180,7 @@ const TrackOrder = () => {
       items.push({
         title: 'Cancelled',
         description: 'Your order has been cancelled',
-        date: new Date(order.createdAt).toLocaleDateString(),
+        date: new Date(order.updatedAt || order.createdAt).toLocaleDateString(),
         color: 'red',
         icon: IconAlertCircle
       });
@@ -222,13 +236,37 @@ const TrackOrder = () => {
           {order && (
             <Paper radius="md" p="xl" withBorder style={{ width: '100%' }}>
               <Stack gap="lg">
-                <Group justify="space-between" align="flex-start">
-                  <Stack gap="xs">
-                    <Title order={2} size="h3">Order #{order._id?.slice(-8)}</Title>
+                <Group justify="space-between" align="center" mb="sm" wrap="wrap">
+                  <Group gap="md" align="center">
+                    <Group gap="xs" align="center">
+                      <Text fw={700} size="lg">
+                        Order #{order._id?.slice(-8)}
+                      </Text>
+                      <CopyButton value={order._id} timeout={2000}>
+                        {({ copied, copy }) => (
+                          <Tooltip label={copied ? 'Copied!' : 'Copy Order ID'} withArrow position="right">
+                            <ActionIcon
+                              color={copied ? 'teal' : 'blue'}
+                              variant="light"
+                              size="sm"
+                              onClick={copy}
+                              style={{ marginLeft: 4 }}
+                            >
+                              {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
+                            </ActionIcon>
+                          </Tooltip>
+                        )}
+                      </CopyButton>
+                    </Group>
                     <Text size="sm" c="dimmed">
                       Placed on {new Date(order.createdAt).toLocaleDateString()}
                     </Text>
-                  </Stack>
+                    {order.orderStatus === 'delivered' && (
+                      <Text size="sm" c="green" fw={600}>
+                        Delivered on {new Date(order.deliveredAt).toLocaleDateString()}
+                      </Text>
+                    )}
+                  </Group>
                   <Badge 
                     size="lg" 
                     color={getStatusColor(order.orderStatus)}
@@ -237,9 +275,11 @@ const TrackOrder = () => {
                     {order.orderStatus?.toUpperCase() || 'PROCESSING'}
                   </Badge>
                 </Group>
+                <Text size="xs" c="dimmed" mb={8}>
+                  <b>Note:</b> You can copy the full order ID above and share it with friends or support. Anyone with this ID can track the order status using the Track Order page.
+                </Text>
 
                 <Divider />
-                
 
                 {/* Order Items */}
                 <Stack gap="md">
@@ -248,7 +288,7 @@ const TrackOrder = () => {
                     <Card key={index} shadow="sm" padding="md" withBorder>
                       <Group justify="space-between">
                         <Stack gap="xs">
-                          <Text fw={600}>{item.name}</Text>
+                          <Text fw={500}>{item.name}</Text>
                           <Text size="sm" c="dimmed">Quantity: {item.quantity}</Text>
                         </Stack>
                         <Text fw={600}>रु{item.price}</Text>
@@ -259,19 +299,8 @@ const TrackOrder = () => {
 
                 <Divider />
 
-                {/* Shipping Address */}
-                <Stack gap="md">
-                  <Title order={3} size="h4">Shipping Address</Title>
-                  <Card shadow="sm" padding="md" withBorder>
-                    <Text>{order.shippingAddress?.fullName}</Text>
-                    <Text>{order.shippingAddress?.street}</Text>
-                    <Text>
-                      {order.shippingAddress?.city}, {order.shippingAddress?.state} {order.shippingAddress?.postalCode}
-                    </Text>
-                    <Text>{order.shippingAddress?.country}</Text>
-                  </Card>
-                </Stack>
 
+                {/* Timeline and status only, no shipping/payment details */}
                 <Divider />
 
                 {/* Order Timeline */}
@@ -320,35 +349,6 @@ const TrackOrder = () => {
 
                 <Divider />
 
-                {/* Payment Options */}
-                {!order.isPaid && (
-                  <Card shadow="sm" padding="lg" withBorder>
-                    <Stack gap="md">
-                      <Title order={3} size="h4">Payment Options</Title>
-                      <Button
-                        color="violet"
-                        size="md"
-                        loading={paymentLoading}
-                        onClick={() => handleKhaltiPayment(false)}
-                        leftSection={<IconCheck size={18} />}
-                      >
-                        Pay Full Amount with Khalti
-                      </Button>
-                      <Button
-                        color="orange"
-                        size="md"
-                        loading={paymentLoading}
-                        onClick={() => handleKhaltiPayment(true)}
-                        leftSection={<IconCheck size={18} />}
-                      >
-                        Cash on Delivery (Pay 40% Advance with Khalti)
-                      </Button>
-                      <Text size="sm" c="dimmed">
-                        For Cash on Delivery, you must pay 40% of the total amount in advance via Khalti.
-                      </Text>
-                    </Stack>
-                  </Card>
-                )}
 
                 {/* Order Status Legend */}
                 <Stack gap="xs" mt="lg">

@@ -4,7 +4,7 @@ import sgMail from '@sendgrid/mail';
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Utility function for role check
-function hasRole(user, roles = []) {
+function hasRole(user, roles = []) {user
   if (!user || !user.role) return false;
   return roles.includes(user.role);
 }
@@ -23,8 +23,10 @@ export const createOrder = async (req, res) => {
       isPaid
     } = req.body;
 
+    // Fallback for guest checkout: allow user to be null
+    const userId = req.user && req.user._id ? req.user._id : null;
     const order = new Order({
-      user: req.user._id, // <-- if req.user is missing, this will fail!
+      user: userId,
       orderItems,
       shippingAddress,
       paymentMethod,
@@ -128,18 +130,25 @@ export const getOrderById = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
   try {
     if (!hasRole(req.user, ['admin'])) {
+      console.log('[OrderStatus] Forbidden: user is not admin', req.user && req.user.role);
       return res.status(403).json({ message: "Only admin can update order status" });
     }
     const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ message: "Order not found" });
+    if (!order) {
+      console.log('[OrderStatus] Order not found:', req.params.id);
+      return res.status(404).json({ message: "Order not found" });
+    }
+    console.log('[OrderStatus] Updating order', req.params.id, 'from', order.orderStatus, 'to', req.body.status);
     order.orderStatus = req.body.status || order.orderStatus;
     if (req.body.status === 'delivered') {
       order.isDelivered = true;
       order.deliveredAt = new Date();
     }
     await order.save();
+    console.log('[OrderStatus] Order saved. New status:', order.orderStatus);
     res.json(order);
   } catch (error) {
+    console.error('[OrderStatus] Error updating order:', error);
     res.status(500).json({ message: "Error updating order", error: error.message });
   }
 };

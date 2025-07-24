@@ -24,13 +24,13 @@ export const AuthProvider = ({ children }) => {
         }
         const { data } = await api.get('/users/me')
         setUser({
-          name: data.name,
+          name: data.name, 
           email: data.email,
           isAdmin: data.role === 'admin',
           id: data.id,
           role: data.role,
           isEmailVerified: data.isEmailVerified,
-          token: token, // <-- store token in user object
+          token: token,
         })
       } catch (error) {
         console.log('User not authenticated:', error.message)
@@ -41,8 +41,8 @@ export const AuthProvider = ({ children }) => {
         setLoading(false)
       }
     }
-    const token = getToken();
-    if (!token) return; // Only fetch if token exists
+    
+    // Always try to fetch user, even without token (for cookie-based auth)
     fetchUser();
   }, [])
 
@@ -50,11 +50,13 @@ export const AuthProvider = ({ children }) => {
     try {
       // Login and get token from response
       const res = await api.post('/users/login', { email, password })
-      const token = res.data?.token; // <-- always undefined!
+      const token = res.data?.token;
+      
       if (token) {
         setToken(token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       }
+      
       // After login, fetch user info
       const { data } = await api.get('/users/me')
       setUser({
@@ -68,6 +70,7 @@ export const AuthProvider = ({ children }) => {
       })
       return { success: true }
     } catch (error) {
+      console.error('Login error:', error);
       setToken(null);
       delete api.defaults.headers.common['Authorization'];
       return { 

@@ -10,17 +10,25 @@ import {
   Select, 
   Stack, 
   Loader, 
-  Alert 
+  Alert,
+  ActionIcon,
+  Modal,
+  Menu
 } from '@mantine/core';
-import { IconAlertCircle, IconEye } from '@tabler/icons-react';
+import { IconAlertCircle, IconEye, IconMenu2, IconTruck, IconPackage } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import api from '../../services/api';
 import AdminLayout from './AdminLayout';
+import { useNavigate } from 'react-router-dom';
+import { modals } from '@mantine/modals';
 
 const OrdersManagement = () => {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orderDetailsModal, setOrderDetailsModal] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -57,6 +65,22 @@ const OrdersManagement = () => {
       case 'cancelled': return 'red';
       default: return 'gray';
     }
+  };
+
+  const handleViewOrderDetails = (order) => {
+    setSelectedOrder(order);
+    setOrderDetailsModal(true);
+  };
+
+  const confirmStatusChange = (order, newStatus) => {
+    modals.openConfirmModal({
+      title: 'Confirm Status Change',
+      children: (
+        <Text>Are you sure you want to change the status of order <b>#{order._id.slice(-8)}</b> to <b>{newStatus}</b>?</Text>
+      ),
+      labels: { confirm: 'Confirm', cancel: 'Cancel' },
+      onConfirm: () => updateOrderStatus(order._id, newStatus),
+    });
   };
 
   if (loading) {
@@ -122,26 +146,21 @@ const OrdersManagement = () => {
                       <Text size="sm" fw={600}>रु{order.totalPrice}</Text>
                     </Table.Td>
                     <Table.Td>
-                      <Select
-                        size="xs"
-                        value={order.orderStatus}
-                        onChange={(value) => updateOrderStatus(order._id, value)}
-                        data={[
-                          { value: 'pending', label: 'Pending' },
-                          { value: 'processing', label: 'Processing' },
-                          { value: 'shipped', label: 'Shipped' },
-                          { value: 'delivered', label: 'Delivered' },
-                          { value: 'cancelled', label: 'Cancelled' }
-                        ]}
-                        styles={{ input: { minHeight: 28 } }}
-                      />
+                      <Badge color={getStatusColor(order.orderStatus)} size="sm">
+                        {order.orderStatus}
+                      </Badge>
                     </Table.Td>
                     <Table.Td>
                       <Text size="sm">{new Date(order.createdAt).toLocaleDateString()}</Text>
                     </Table.Td>
                     <Table.Td>
-                      <Button size="xs" variant="light" leftSection={<IconEye size={14} />}>
-                        View
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        color="blue"
+                        onClick={() => navigate(`/admin/orders/${order._id}`)}
+                      >
+                        Order Details
                       </Button>
                     </Table.Td>
                   </Table.Tr>
@@ -151,6 +170,82 @@ const OrdersManagement = () => {
           )}
         </Stack>
       </Paper>
+
+      {/* Order Details Modal */}
+      <Modal 
+        opened={orderDetailsModal} 
+        onClose={() => setOrderDetailsModal(false)} 
+        title="Order Details"
+        size="lg"
+      >
+        {selectedOrder && (
+          <Stack gap="md">
+            <Group justify="space-between">
+              <Text fw={600}>Order #{selectedOrder._id.slice(-8)}</Text>
+              <Badge color={getStatusColor(selectedOrder.orderStatus)}>
+                {selectedOrder.orderStatus}
+              </Badge>
+            </Group>
+            
+            <Text size="sm" c="dimmed">Customer Information</Text>
+            <Paper p="md" withBorder>
+              <Text size="sm"><strong>Name:</strong> {selectedOrder.user?.name || 'Guest'}</Text>
+              <Text size="sm"><strong>Email:</strong> {selectedOrder.user?.email || 'No email'}</Text>
+              <Text size="sm"><strong>Phone:</strong> {selectedOrder.shippingAddress?.phone || 'Not provided'}</Text>
+            </Paper>
+
+            <Text size="sm" c="dimmed">Shipping Address</Text>
+            <Paper p="md" withBorder>
+              <Text size="sm">{selectedOrder.shippingAddress?.address || 'No address'}</Text>
+              <Text size="sm">{selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state}</Text>
+              <Text size="sm">PIN: {selectedOrder.shippingAddress?.postalCode}</Text>
+            </Paper>
+
+            <Text size="sm" c="dimmed">Order Items</Text>
+            <Paper p="md" withBorder>
+              {selectedOrder.orderItems?.map((item, index) => (
+                <Group key={index} justify="space-between" mb="xs">
+                  <Text size="sm">{item.name}</Text>
+                  <Text size="sm">रु{item.price} x {item.quantity}</Text>
+                </Group>
+              ))}
+            </Paper>
+
+            <Group justify="space-between">
+              <Text fw={600}>Total Amount</Text>
+              <Text fw={600} size="lg">रु{selectedOrder.totalPrice}</Text>
+            </Group>
+
+            <Text size="sm" c="dimmed">Order Timeline</Text>
+            <Paper p="md" withBorder>
+              <Text size="sm"><strong>Ordered:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</Text>
+              {selectedOrder.updatedAt && selectedOrder.updatedAt !== selectedOrder.createdAt && (
+                <Text size="sm"><strong>Last Updated:</strong> {new Date(selectedOrder.updatedAt).toLocaleString()}</Text>
+              )}
+            </Paper>
+
+            <Group justify="space-between">
+              <Text size="sm" c="dimmed">Update Status</Text>
+              <Select
+                size="sm"
+                value={selectedOrder.orderStatus}
+                onChange={(value) => {
+                  updateOrderStatus(selectedOrder._id, value);
+                  setOrderDetailsModal(false);
+                }}
+                data={[
+                  { value: 'pending', label: 'Pending' },
+                  { value: 'processing', label: 'Processing' },
+                  { value: 'shipped', label: 'Shipped' },
+                  { value: 'delivered', label: 'Delivered' },
+                  { value: 'cancelled', label: 'Cancelled' }
+                ]}
+                styles={{ input: { minHeight: 32 } }}
+              />
+            </Group>
+          </Stack>
+        )}
+      </Modal>
     </AdminLayout>
   );
 };

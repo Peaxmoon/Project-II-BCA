@@ -1,5 +1,7 @@
 # Electomart E-commerce Backend
 
+
+<!-- gsap and barbajs for additional ui  -->
 ## Overview
 Backend server for Electomart, a single-vendor e-commerce platform for home appliances & gadgets, built with Node.js, Express, and MongoDB.
 
