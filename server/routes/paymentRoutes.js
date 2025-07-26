@@ -1,13 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { initiateKhaltiPayment, verifyKhaltiPayment } from '../controllers/paymentController.js';
+
 const router = express.Router();
-const paymentController = require('../controllers/paymentController');
 
-// Khalti
-router.post('/khalti/initiate', paymentController.initiateKhaltiPayment);
-router.post('/khalti/verify', paymentController.verifyKhaltiPayment);
+// Khalti only
+router.post('/khalti/initiate', initiateKhaltiPayment);
+router.post('/khalti/verify', verifyKhaltiPayment);
 
-// eSewa
-router.post('/esewa/initiate', paymentController.initiateEsewaPayment);
-router.post('/esewa/verify', paymentController.verifyEsewaPayment);
-
-module.exports = router;
+export default router;

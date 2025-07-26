@@ -1,4 +1,5 @@
 import Order from '../models/Order.js';
+import Product from '../models/Product.js';
 import sgMail from '@sendgrid/mail';
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -25,6 +26,7 @@ export const createOrder = async (req, res) => {
 
     // Fallback for guest checkout: allow user to be null
     const userId = req.user && req.user._id ? req.user._id : null;
+    // Always create order as pending and unpaid unless COD
     const order = new Order({
       user: userId,
       orderItems,
@@ -34,9 +36,9 @@ export const createOrder = async (req, res) => {
       shippingPrice,
       taxPrice,
       totalPrice,
-      isPaid: paymentMethod === 'cod' ? false : !!isPaid,
-      orderStatus: 'processing',
-      paidAt: paymentMethod === 'cod' ? null : new Date(),
+      isPaid: paymentMethod === 'cod' ? true : false,
+      orderStatus: paymentMethod === 'cod' ? 'processing' : 'pending',
+      paidAt: paymentMethod === 'cod' ? new Date() : null,
     });
 
     await order.save();
@@ -63,6 +65,33 @@ export const createOrder = async (req, res) => {
   } catch (error) {
     console.error('Order creation error:', error); // Add this line
     res.status(500).json({ message: "Error creating order", error: error.message });
+  }
+};
+// Mark order as paid and reduce stock after payment verification
+export const markOrderPaid = async (req, res) => {
+  try {
+    const { orderId, paymentInfo } = req.body;
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (order.isPaid) return res.status(400).json({ message: 'Order already marked as paid' });
+
+    // Mark as paid
+    order.isPaid = true;
+    order.paidAt = new Date();
+    order.orderStatus = 'processing';
+    order.paymentResult = paymentInfo || {};
+    await order.save();
+
+    // Reduce stock for each product
+    for (const item of order.orderItems) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { stock: -item.quantity }
+      });
+    }
+
+    res.json({ success: true, order });
+  } catch (error) {
+    res.status(500).json({ message: 'Error marking order as paid', error: error.message });
   }
 };
 

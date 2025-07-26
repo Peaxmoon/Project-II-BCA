@@ -30,7 +30,7 @@ const cartSchema = new mongoose.Schema({
   },
   currency: {
     type: String,
-    default: 'USD'
+    default: 'NPR'
   },
   lastUpdated: {
     type: Date,
