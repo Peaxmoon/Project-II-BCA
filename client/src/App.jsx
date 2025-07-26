@@ -1,21 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useContext } from 'react';
 import { Layout } from './components/common/Layout';
 import AppRoutes from './routes/AppRoutes';
 import Loader from './components/common/Loader';
+import LoaderContext from './contexts/LoaderContext.js';
 import './App.css';
 
 function App() {
-  const location = useLocation();
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setLoading(true);
-    const timeout = setTimeout(() => {
-      setLoading(false);
-    }, 700);
-    return () => clearTimeout(timeout);
-  }, [location]);
+  const { loading } = useContext(LoaderContext);
 
   return (
     <>

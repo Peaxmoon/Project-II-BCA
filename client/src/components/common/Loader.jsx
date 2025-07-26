@@ -1,9 +1,11 @@
 import React from 'react';
+import './Loader.css'; // Import the CSS file
+import Spinner from '/src/assets/Spinner.svg'; // Adjust path as needed
 
 const Loader = () => {
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-white z-50">
-      <img src="/src/assets/Spinner.svg" alt="Loading..." className="w-6 h-6 animate-spin" />
+    <div className="loader-overlay">
+      <img src={Spinner} alt="Loading..." className="loader-spinner" />
     </div>
   );
 };

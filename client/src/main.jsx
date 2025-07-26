@@ -11,20 +11,23 @@ import '@mantine/core/styles.css';
 import '@mantine/carousel/styles.css';
 import '@mantine/notifications/styles.css';
 import App from './App'
+import { LoaderProvider } from './contexts/LoaderContext.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <MantineProvider defaultColorScheme="light">
-      <Notifications />
-      <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </WishlistProvider>
-        </CartProvider>
-      </AuthProvider>
-    </MantineProvider>
+    <LoaderProvider>
+      <MantineProvider defaultColorScheme="light">
+        <Notifications />
+        <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <BrowserRouter>
+                <App />
+              </BrowserRouter>
+            </WishlistProvider>
+          </CartProvider>
+        </AuthProvider>
+      </MantineProvider>
+    </LoaderProvider>
   </React.StrictMode>
 )

@@ -44,7 +44,7 @@ function useDebouncedCallback(callback, delay) {
 }
 
 const Cart = () => {
-    const { user } = useAuth();
+  const { user } = useAuth();
   const { cart, loading, error, updateCartItem, removeCartItem, clearCart } = useCart();
   const [products, setProducts] = useState([]);
   const [fetching, setFetching] = useState(false);
@@ -65,7 +65,7 @@ const Cart = () => {
 
   useEffect(() => {
     if (!productIds || fetching) return; // Avoid duplicate fetches
-    if (!user) {
+    if (!user || !user.token) {
       setProducts([]);
       setFetching(false);
       return;
@@ -81,6 +81,7 @@ const Cart = () => {
       .catch(() => setProducts([]))
       .finally(() => setFetching(false));
   }, [productIds, user]);
+  //Maybe error
 
   const [updating, setUpdating] = useState({}); // { [productId]: boolean }
 
@@ -90,6 +91,9 @@ const Cart = () => {
     try {
       await updateCartItem(productId, quantity);
     } catch (e) {
+      console.error('Cart: Error updating item:', e);
+      // setError('Failed to update item in cart');
+      // Maybe Error
       // Optionally revert local state or show error
     } finally {
       setUpdating(prev => ({ ...prev, [productId]: false }));

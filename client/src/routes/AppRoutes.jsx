@@ -13,6 +13,7 @@ import Admin from '../pages/Admin'
 import NotFound from '../pages/NotFound'
 import Features from '../pages/Features'
 import TrackOrder from '../pages/TrackOrder'
+import OrderConfirmation from '../pages/Shop/OrderConfirmation';
 import Wishlist from '../pages/Wishlist'
 import ProductReviews from '../pages/Shop/ProductReviews'
 import { useAuth } from '../contexts/AuthContext'
@@ -44,6 +45,7 @@ const AppRoutes = () => (
     } />
     <Route path="/features" element={<Features />} />
     <Route path="/track-order" element={<TrackOrder />} />
+    <Route path="/order-confirmation" element={<OrderConfirmation />} />
     <Route path="/wishlist" element={<Wishlist />} />
     <Route path="/products/:id/reviews" element={<ProductReviews />} />
     <Route path="*" element={<NotFound />} />

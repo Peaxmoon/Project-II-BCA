@@ -1,11 +1,20 @@
 import React from 'react';
 import { Container, Paper, Title, Text, Group, Divider, Button } from '@mantine/core';
 import { IconCheck, IconMail } from '@tabler/icons-react';
-import { useLocation, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+
+function useQuery() {
+  return new URLSearchParams(window.location.search);
+}
 
 const OrderConfirmation = () => {
-  const location = useLocation();
-  const { orderId, totalPrice } = location.state || {};
+  const query = useQuery();
+  const orderId = query.get('purchase_order_id') || query.get('orderId');
+  const totalPrice = query.get('amount') || query.get('total_amount');
+  const status = query.get('status');
+  const txnId = query.get('txnId') || query.get('transaction_id');
+  const mobile = query.get('mobile');
+  const paymentMethod = status === 'Completed' ? 'Khalti' : 'Cash on Delivery';
 
   return (
     <Container size="sm" py="xl">
@@ -19,11 +28,21 @@ const OrderConfirmation = () => {
           Thank you for your order. Your order ID is <b>{orderId}</b>.
         </Text>
         <Text mt="md">
-          <b>Payment Method:</b> Cash on Delivery
+          <b>Payment Method:</b> {paymentMethod}
         </Text>
         <Text>
           <b>Total Amount:</b> रु{totalPrice}
         </Text>
+        {txnId && (
+          <Text>
+            <b>Transaction ID:</b> {txnId}
+          </Text>
+        )}
+        {mobile && (
+          <Text>
+            <b>Mobile:</b> {mobile}
+          </Text>
+        )}
         <Text mt="md" c="dimmed">
           A confirmation email has been sent to your registered email address. Please check your inbox for details.
         </Text>

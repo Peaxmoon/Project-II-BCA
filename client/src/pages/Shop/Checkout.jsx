@@ -34,7 +34,7 @@ const Checkout = () => {
     state: '',
     postalCode: '',
     country: 'Nepal',
-    paymentMethod: 'cod'
+    paymentMethod: 'khalti'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -76,16 +76,35 @@ const Checkout = () => {
         paymentMethod: formData.paymentMethod,
         itemsPrice: cart.totalPrice,
         shippingPrice: 0,
-        taxPrice: Math.round(cart.totalPrice * 0.13),
-        totalPrice: Math.round(cart.totalPrice * 1.13),
-        isPaid: formData.paymentMethod === 'cod' ? false : true, // <-- COD is unpaid
+        taxPrice: Math.round(cart.totalPrice * 0.13/100), //Maybe Error
+        totalPrice: Math.round(cart.totalPrice * 1.13/100),//Maybe Error
+        isPaid: formData.paymentMethod === 'cod' ? false : true,
       };
-
       const response = await api.post('/orders', orderData);
+      const orderId = response.data._id;
+      const totalPrice = response.data.totalPrice;
 
       if (cart.clearCart) await cart.clearCart();
 
-      navigate('/order-confirmation', { state: { orderId: response.data._id, totalPrice: response.data.totalPrice } });
+      if (formData.paymentMethod === 'khalti') {
+        // Initiate Khalti payment and redirect
+        const paymentRes = await api.post('/payments/khalti/initiate', {
+          amount: totalPrice,
+          orderId,
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          return_url: window.location.origin + '/order-confirmation',
+          // return_url: 'http://localhost:5173/order-confirmation',
+          website_url: window.location.origin
+          // website_url: 'http://localhost:5173'
+        });
+        window.location.href = paymentRes.data.payment_url;
+        return;
+      }
+
+      // For COD and other methods, show confirmation page
+      navigate('/order-confirmation', { state: { orderId, totalPrice } });
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to place order. Please try again.');
     } finally {
@@ -118,7 +137,7 @@ const Checkout = () => {
     );
   }
 
-  const totalPrice = Math.round(cart.totalPrice * 1.13); // Including 13% tax
+  const totalPrice = Math.round(cart.totalPrice * 1.13/100); // Including 13% tax
 
   return (
     <Container size="lg" py="xl">
@@ -228,14 +247,14 @@ const Checkout = () => {
                   </Group>
                   
                   <Select
-                    label="Select Payment Method"
-                    placeholder="Choose payment method"
-                    data={[
-                      { value: 'cod', label: 'Cash on Delivery' },
-                      { value: 'khalti', label: 'Khalti Payment' }
-                    ]}
+                    label="Payment Method"
                     value={formData.paymentMethod}
-                    onChange={(value) => handleChange('paymentMethod', value)}
+                    onChange={value => handleChange('paymentMethod', value)}
+                    data={[
+                      { value: 'khalti', label: 'Khalti' },
+                      { value: 'esewa', label: 'eSewa' },
+                      { value: 'cod', label: 'Cash on Delivery' }
+                    ]}
                     required
                   />
                 </Stack>
