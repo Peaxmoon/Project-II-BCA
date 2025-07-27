@@ -41,14 +41,37 @@ export const createOrder = async (req, res) => {
       paidAt: paymentMethod === 'cod' ? new Date() : null,
     });
 
+    // Save the order first to get the order ID
     await order.save();
 
-    // Send confirmation email for COD
+    // For COD orders, reduce stock immediately
     if (paymentMethod === 'cod') {
+      try {
+        for (const item of order.orderItems) {
+          const product = await Product.findById(item.product);
+          if (!product) {
+            throw new Error(`Product not found: ${item.product}`);
+          }
+          if (product.stock < item.quantity) {
+            throw new Error(`Insufficient stock for product: ${item.name}`);
+          }
+          await Product.findByIdAndUpdate(item.product, {
+            $inc: { stock: -item.quantity }
+          });
+        }
+      } catch (error) {
+        // If stock reduction fails, delete the order and throw error
+        await Order.findByIdAndDelete(order._id);
+        throw new Error(`Error reducing stock: ${error.message}`);
+      }
+    }
+
+    // Send confirmation email for COD if we have an email
+    if (paymentMethod === 'cod' && (req.user?.email || shippingAddress?.email)) {
       const msg = {
-        to: req.user.email,
+        to: req.user?.email || shippingAddress.email,
         from: 'support@sujjalkhadka.com.np',
-        subject: 'Order Confirmation - Cash on Delivery',
+        subject: 'Order Confirmation - Cash on Delivery | ElectroMart E-commerce',
         html: `
           <h2>Thank you for your order!</h2>
           <p>Your order <b>#${order._id}</b> has been placed successfully with <b>Cash on Delivery</b>.</p>
@@ -58,7 +81,12 @@ export const createOrder = async (req, res) => {
           <p>If you have any questions, reply to this email or call our support hotline.</p>
         `
       };
-      await sgMail.send(msg);
+      try {
+        await sgMail.send(msg);
+      } catch (emailError) {
+        console.error('Error sending confirmation email:', emailError);
+        // Don't throw error for email failure
+      }
     }
 
     res.status(201).json(order);
@@ -144,12 +172,19 @@ export const getOrderById = async (req, res) => {
         isDelivered: order.isDelivered,
         deliveredAt: order.deliveredAt,
         createdAt: order.createdAt,
-        updatedAt: order.updatedAt
+        updatedAt: order.updatedAt,
+        paymentMethod: order.paymentMethod,
+        paymentResult: order.paymentResult
       };
       return res.json(publicOrder);
     }
 
-    res.json(order);
+    // Include payment details for authenticated users
+    res.json({
+      ...order._doc,
+      paymentMethod: order.paymentMethod,
+      paymentResult: order.paymentResult
+    });
   } catch (error) {
     res.status(500).json({ message: "Error fetching order", error: error.message });
   }
@@ -168,11 +203,29 @@ export const updateOrderStatus = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
     console.log('[OrderStatus] Updating order', req.params.id, 'from', order.orderStatus, 'to', req.body.status);
+    const oldStatus = order.orderStatus;
     order.orderStatus = req.body.status || order.orderStatus;
+
     if (req.body.status === 'delivered') {
       order.isDelivered = true;
       order.deliveredAt = new Date();
+
+      // If this is a COD order and it's being marked as delivered, reduce stock now
+      if (order.paymentMethod === 'cod') {
+        console.log('[OrderStatus] COD order delivered, reducing stock');
+        try {
+          for (const item of order.orderItems) {
+            await Product.findByIdAndUpdate(item.product, {
+              $inc: { stock: -item.quantity }
+            });
+          }
+        } catch (error) {
+          console.error('[OrderStatus] Error reducing stock:', error);
+          return res.status(500).json({ message: "Error reducing product stock" });
+        }
+      }
     }
+
     await order.save();
     console.log('[OrderStatus] Order saved. New status:', order.orderStatus);
     res.json(order);
