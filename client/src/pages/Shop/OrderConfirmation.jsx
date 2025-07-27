@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Paper, Title, Text, Group, Divider, Button } from '@mantine/core';
 import { IconCheck, IconMail } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
@@ -9,12 +9,27 @@ function useQuery() {
 
 const OrderConfirmation = () => {
   const query = useQuery();
-  const orderId = query.get('purchase_order_id') || query.get('orderId');
-  const totalPrice = query.get('amount') || query.get('total_amount');
-  const status = query.get('status');
-  const txnId = query.get('txnId') || query.get('transaction_id');
-  const mobile = query.get('mobile');
-  const paymentMethod = status === 'Completed' ? 'Khalti' : 'Cash on Delivery';
+  const [orderDetails, setOrderDetails] = useState({});
+
+  useEffect(() => {
+    const orderId = query.get('purchase_order_id') || query.get('orderId');
+    const totalPrice = query.get('amount') || query.get('total_amount');
+    const txnId = query.get('txnId') || query.get('transaction_id');
+    const mobile = query.get('mobile');
+    const paymentMethod = query.get('payment_method') || 'Cash on Delivery';
+
+    if (orderId && totalPrice) {
+      setOrderDetails({ orderId, totalPrice, txnId, mobile, paymentMethod });
+    } else {
+      // Fallback to local storage if details are not in URL
+      const storedOrder = JSON.parse(localStorage.getItem('orderDetails'));
+      if (storedOrder) {
+        setOrderDetails(storedOrder);
+      }
+    }
+  }, [query]);
+
+  const { orderId, totalPrice, txnId, mobile, paymentMethod } = orderDetails;
 
   return (
     <Container size="sm" py="xl">

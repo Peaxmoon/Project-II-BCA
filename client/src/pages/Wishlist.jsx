@@ -116,7 +116,7 @@ const Wishlist = () => {
               <Text>Please log in to view and manage your wishlist.</Text>
               <Button
                 component={Link}
-                to="/auth/login"
+                to="/login"
                 variant="filled"
                 color="blue"
                 size="sm"

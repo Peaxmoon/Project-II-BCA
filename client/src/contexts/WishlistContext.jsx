@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { useAuth } from './AuthContext';
 import api from '../services/api';
 
-const WishlistContext = createContext();
+export const WishlistContext = createContext();
 
 export function useWishlist() {
   return useContext(WishlistContext);
@@ -115,4 +115,7 @@ export function WishlistProvider({ children }) {
       {children}
     </WishlistContext.Provider>
   );
-} 
+}
+
+// Only export once, as named exports
+// export { WishlistContext, WishlistProvider, useWishlist }

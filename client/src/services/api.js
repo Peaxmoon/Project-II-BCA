@@ -5,6 +5,15 @@ const api = axios.create({
   withCredentials: true,
 })
 
+// Always send token from localStorage for every request
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('electomart_token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export default api
 
 // Add review for a product

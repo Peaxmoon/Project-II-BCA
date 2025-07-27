@@ -3,7 +3,7 @@ import api from '../services/api'
 import { useAuth } from './AuthContext'
 export const CartContext = createContext()
 
-export const CartProvider = ({ children }) => {
+export function CartProvider({ children }) {
   const { user } = useAuth()
   const [cart, setCart] = useState({ items: [], totalQuantity: 0, totalPrice: 0 })
   const [loading, setLoading] = useState(false)
@@ -148,4 +148,9 @@ export const CartProvider = ({ children }) => {
   )
 }
 
-export const useCart = () => useContext(CartContext)
+export function useCart() {
+  return useContext(CartContext)
+}
+
+// Only export once, as named exports
+// export { CartContext, CartProvider, useCart }

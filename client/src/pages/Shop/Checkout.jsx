@@ -76,8 +76,8 @@ const Checkout = () => {
         paymentMethod: formData.paymentMethod,
         itemsPrice: cart.totalPrice,
         shippingPrice: 0,
-        taxPrice: Math.round(cart.totalPrice * 0.13/100), //Maybe Error
-        totalPrice: Math.round(cart.totalPrice * 1.13/100),//Maybe Error
+        taxPrice: Math.round(cart.totalPrice * 0.13), // 13% tax
+        totalPrice: Math.round(cart.totalPrice * 1.13), // Total with 13% tax
         isPaid: formData.paymentMethod === 'cod' ? false : true,
       };
       const response = await api.post('/orders', orderData);

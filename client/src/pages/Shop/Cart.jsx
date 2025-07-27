@@ -180,7 +180,7 @@ const Cart = () => {
                 <Text>Please log in to view and manage your cart.</Text>
                 <Button
                   component={Link}
-                  to="/auth/login"
+                  to="/login"
                   variant="filled"
                   color="blue"
                   size="sm"

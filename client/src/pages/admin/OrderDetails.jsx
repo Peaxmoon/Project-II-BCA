@@ -91,6 +91,19 @@ const OrderDetails = () => {
           <Stack gap={0}>
             <Title order={2}>Order #{order._id.slice(-8)}</Title>
             <Text size="sm" c="dimmed">Placed: {new Date(order.createdAt).toLocaleString()}</Text>
+            <Text size="sm">Payment Method: {order.paymentMethod || 'N/A'}</Text>
+            {order.isPaid ? (
+              <>
+                <Text size="sm" c="green">Paid at: {new Date(order.paidAt).toLocaleString()}</Text>
+                <Text size="sm">Payment Status: {order.paymentResult?.status || 'Completed'}</Text>
+                <Text size="sm">Transaction ID: {order.paymentResult?.id || order.paymentResult?.pidx || 'N/A'}</Text>
+                {order.paymentResult?.email_address && (
+                  <Text size="sm">Payer Email: {order.paymentResult.email_address}</Text>
+                )}
+              </>
+            ) : (
+              <Text size="sm" c="orange">Payment Pending</Text>
+            )}
           </Stack>
           <Badge color={statusColors[order.orderStatus] || 'gray'} size="lg" radius="sm">
             {order.orderStatus}
@@ -100,16 +113,18 @@ const OrderDetails = () => {
         <Group align="flex-start" grow>
           <Stack gap="xs" w="50%">
             <Text fw={600}>Customer Information</Text>
-            <Text size="sm"><b>Name:</b> {order.user?.name || 'Guest'}</Text>
-            <Text size="sm"><b>Email:</b> {order.user?.email || 'No email'}</Text>
+            <Text size="sm"><b>Name:</b> {order.user?.name || order.shippingAddress?.fullName || 'Guest'}</Text>
+            <Text size="sm"><b>Email:</b> {order.user?.email || order.shippingAddress?.email || order.paymentResult?.email || order.paymentResult?.email_address || 'No email'}</Text>
             <Text size="sm"><b>Phone:</b> {order.shippingAddress?.phone || 'Not provided'}</Text>
-            <Text size="sm"><b>Payment:</b> {order.paymentStatus || 'N/A'}</Text>
+            <Text size="sm"><b>Payment Status:</b> {order.isPaid ? 'Paid' : 'Pending'}</Text>
+            <Text size="sm"><b>Payment Method:</b> {order.paymentMethod || 'N/A'}</Text>
           </Stack>
           <Stack gap="xs" w="50%">
             <Text fw={600}>Shipping Address</Text>
-            <Text size="sm">{order.shippingAddress?.address || 'No address'}</Text>
-            <Text size="sm">{order.shippingAddress?.city}, {order.shippingAddress?.state}</Text>
+            <Text size="sm">{order.shippingAddress?.street || order.shippingAddress?.address || 'No address'}</Text>
+            <Text size="sm">{order.shippingAddress?.city || ''}{order.shippingAddress?.state ? `, ${order.shippingAddress.state}` : ''}</Text>
             <Text size="sm">PIN: {order.shippingAddress?.postalCode}</Text>
+            <Text size="sm">{order.shippingAddress?.country}</Text>
           </Stack>
         </Group>
         <Divider my="md" />
