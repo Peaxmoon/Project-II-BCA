@@ -29,11 +29,12 @@
 # ===========================
 # 🛠 Package Manager Artifacts
 # ===========================
-**/bun.lockb
+**/bun.lock
 **/.bun/
 **/yarn.lock
 **/pnpm-lock.yaml
-**/package-lock.json # Optional: include if you want to regenerate lockfile only on local
+**/package-lock.json
+# Optional: include if you want to regenerate lockfile only on local
 
 # ===========================
 # 🐞 Logs

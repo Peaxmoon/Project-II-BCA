@@ -182,6 +182,7 @@ const Cart = () => {
                   component={Link}
                   to="/login"
                   variant="filled"
+                  // width=""
                   color="blue"
                   size="sm"
                 >
