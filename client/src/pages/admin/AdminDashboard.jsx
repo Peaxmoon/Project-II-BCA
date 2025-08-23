@@ -23,7 +23,7 @@ const AdminDashboard = () => {
   const [selectedId, setSelectedId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(null);
-  
+
   // Pagination state for admin products
   const [page, setPage] = useState(1);
   const [pageSize] = useState(12); // Show 12 products per page for admin
@@ -44,7 +44,7 @@ const AdminDashboard = () => {
       params.append('page', reset ? 1 : page + 1);
       params.append('pageSize', pageSize);
       const res = await api.get(`/products?${params.toString()}`);
-      
+
       if (reset) {
         setProducts(res.data.products || []);
         setPage(1);
@@ -66,8 +66,8 @@ const AdminDashboard = () => {
     await fetchProducts(false);
   };
 
-  useEffect(() => { 
-    if (user?.role === 'admin') fetchProducts(true); 
+  useEffect(() => {
+    if (user?.role === 'admin') fetchProducts(true);
   }, [user]); // <-- Add dependency array here
 
   if (!user?.role || user.role !== 'admin') {
@@ -94,40 +94,40 @@ const AdminDashboard = () => {
       fetchProducts(true); // Reset to first page after adding/editing
     } catch (err) {
       console.error('Product save error:', err.response?.data);
-      
+
       // Handle validation errors specifically
       if (err.response?.status === 400) {
         const errorData = err.response.data;
         if (errorData.code === 'VALIDATION_ERROR' && errorData.details) {
           // Show specific validation errors
-          const errorMessages = errorData.details.map(detail => 
+          const errorMessages = errorData.details.map(detail =>
             `${detail.field}: ${detail.message}`
           ).join('\n');
-          notifications.show({ 
-            color: 'red', 
-            title: 'Validation Error', 
+          notifications.show({
+            color: 'red',
+            title: 'Validation Error',
             message: errorMessages,
             autoClose: 8000
           });
         } else if (errorData.message) {
-          notifications.show({ 
-            color: 'red', 
-            title: 'Error', 
+          notifications.show({
+            color: 'red',
+            title: 'Error',
             message: errorData.message,
             autoClose: 5000
           });
         } else {
-          notifications.show({ 
-            color: 'red', 
-            title: 'Error', 
+          notifications.show({
+            color: 'red',
+            title: 'Error',
             message: 'Failed to save product. Please check your input.',
             autoClose: 5000
           });
         }
       } else {
-        notifications.show({ 
-          color: 'red', 
-          title: 'Error', 
+        notifications.show({
+          color: 'red',
+          title: 'Error',
           message: err.response?.data?.message || 'Failed to save product',
           autoClose: 5000
         });
@@ -160,14 +160,13 @@ const AdminDashboard = () => {
       sku: product.sku || '',
       isFeatured: product.isFeatured || false,
       isBestseller: product.isBestseller || false,
-      featuredImage: product.featuredImage || '',
       tags: product.tags || [],
       shippingWeight: product.shippingInfo?.weight || '',
       shippingLength: product.shippingInfo?.dimensions?.length || '',
       shippingWidth: product.shippingInfo?.dimensions?.width || '',
       shippingHeight: product.shippingInfo?.dimensions?.height || '',
       status: product.status || 'active',
-      images: [],
+      images: product.images || [], // <-- This line ensures images from DB are loaded
       unit: product.unit || 'piece',
       warranty: product.warranty || '',
       specifications: product.specifications || {}
@@ -176,7 +175,6 @@ const AdminDashboard = () => {
     setSelectedId(product._id);
     setModalOpen(true);
   };
-
   // Delete product
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
@@ -213,14 +211,14 @@ const AdminDashboard = () => {
       ) : (
         <Stack gap="lg">
           <ProductTable products={products} onEdit={handleEdit} onDelete={handleDelete} deleteLoading={deleteLoading} />
-          
+
           {/* Load More Button */}
           {products.length < total && (
             <Group justify="center" mt="lg">
-              <Button 
-                onClick={handleLoadMore} 
-                loading={loadingMore} 
-                size="md" 
+              <Button
+                onClick={handleLoadMore}
+                loading={loadingMore}
+                size="md"
                 variant="light"
                 color="blue"
               >
@@ -228,7 +226,7 @@ const AdminDashboard = () => {
               </Button>
             </Group>
           )}
-          
+
           {products.length > 0 && products.length >= total && (
             <Text ta="center" c="dimmed" size="sm">
               All {total} products loaded

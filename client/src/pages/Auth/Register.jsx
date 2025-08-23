@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Paper, TextInput, PasswordInput, Button, Title, Text, Alert } from '@mantine/core';
+import { Container, Paper, TextInput, PasswordInput, Button, Title, Text, Alert, Stack } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -30,9 +30,7 @@ const Register = () => {
     try {
       const response = await fetch('http://localhost:5000/api/users', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
           name: formData.name,
@@ -57,7 +55,7 @@ const Register = () => {
     } catch (error) {
       setError('Network error. Please try again.');
     }
-    
+
     setLoading(false);
   };
 
@@ -66,12 +64,21 @@ const Register = () => {
   };
 
   return (
-    <Container size="sm" py="xl">
-      <Paper radius="md" p="xl" withBorder shadow="md">
+    <Container
+      size="xs"
+      py="xl"
+      style={{
+        height: "80vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+    >
+      <Paper radius="md" p="xl" withBorder shadow="md" style={{ width: "100%", maxWidth: "400px" }}>
         <Title order={2} ta="center" mb="lg">
           Create Your Account
         </Title>
-        
+
         {error && (
           <Alert icon={<IconAlertCircle size={16} />} color="red" mb="md">
             {error}
@@ -79,42 +86,40 @@ const Register = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          <TextInput
-            label="Full Name"
-            placeholder="John Doe"
-            value={formData.name}
-            onChange={(e) => handleChange('name', e.target.value)}
-            required
-            mb="md"
-          />
-          <TextInput
-            label="Email"
-            placeholder="your@email.com"
-            value={formData.email}
-            onChange={(e) => handleChange('email', e.target.value)}
-            required
-            type="email"
-            mb="md"
-          />
-          <PasswordInput
-            label="Password"
-            placeholder="Your password"
-            value={formData.password}
-            onChange={(e) => handleChange('password', e.target.value)}
-            required
-            mb="md"
-          />
-          <PasswordInput
-            label="Confirm Password"
-            placeholder="Confirm your password"
-            value={formData.confirmPassword}
-            onChange={(e) => handleChange('confirmPassword', e.target.value)}
-            required
-            mb="lg"
-          />
-          <Button type="submit" fullWidth loading={loading}>
-            Register
-          </Button>
+          <Stack gap="md">
+            <TextInput
+              label="Full Name"
+              placeholder="Your name"
+              value={formData.name}
+              onChange={(e) => handleChange('name', e.target.value)}
+              required
+            />
+            <TextInput
+              label="Email"
+              placeholder="your@email.com"
+              value={formData.email}
+              onChange={(e) => handleChange('email', e.target.value)}
+              required
+              type="email"
+            />
+            <PasswordInput
+              label="Password"
+              placeholder="Your password"
+              value={formData.password}
+              onChange={(e) => handleChange('password', e.target.value)}
+              required
+            />
+            <PasswordInput
+              label="Confirm Password"
+              placeholder="Confirm your password"
+              value={formData.confirmPassword}
+              onChange={(e) => handleChange('confirmPassword', e.target.value)}
+              required
+            />
+            <Button type="submit" loading={loading} fullWidth>
+              Register
+            </Button>
+          </Stack>
         </form>
 
         <Text ta="center" mt="md">

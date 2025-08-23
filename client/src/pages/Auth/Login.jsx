@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Paper, TextInput, PasswordInput, Button, Title, Text, Alert } from '@mantine/core';
+import { Container, Paper, TextInput, PasswordInput, Button, Title, Text, Alert, Stack } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -35,8 +35,17 @@ const Login = () => {
   };
 
   return (
-    <Container size="sm" py="xl">
-      <Paper radius="md" p="xl" withBorder shadow="md">
+    <Container
+      size="xs"
+      py="xl"
+      style={{
+        height: "80vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+    >
+      <Paper radius="md" p="xl" withBorder shadow="md" style={{ width: "100%", maxWidth: "400px" }}>
         <Title order={2} ta="center" mb="lg">
           Login to Your Account
         </Title>
@@ -48,29 +57,29 @@ const Login = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          <TextInput
-            label="Email"
-            placeholder="your@email.com"
-            value={formData.email}
-            onChange={(e) => handleChange('email', e.target.value)}
-            required
-            mb="md"
-          />
-          <PasswordInput
-            label="Password"
-            placeholder="Your password"
-            value={formData.password}
-            onChange={(e) => handleChange('password', e.target.value)}
-            required
-            mb="lg"
-          />
-          <Button type="submit" fullWidth loading={loading}>
-            Login
-          </Button>
+          <Stack gap="md">
+            <TextInput
+              label="Email"
+              placeholder="your@email.com"
+              value={formData.email}
+              onChange={(e) => handleChange('email', e.target.value)}
+              required
+            />
+            <PasswordInput
+              label="Password"
+              placeholder="Your password"
+              value={formData.password}
+              onChange={(e) => handleChange('password', e.target.value)}
+              required
+            />
+            <Button type="submit" loading={loading} fullWidth>
+              Login
+            </Button>
+          </Stack>
         </form>
 
         <Text ta="center" mt="md">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Text component="a" href="/register" c="blue" style={{ textDecoration: 'none' }}>
             Register here
           </Text>

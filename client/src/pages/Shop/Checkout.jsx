@@ -80,6 +80,7 @@ const Checkout = () => {
         totalPrice: Math.round(cart.totalPrice * 1.13), // Total with 13% tax
         isPaid: formData.paymentMethod === 'cod' ? false : true,
       };
+      
       const response = await api.post('/orders', orderData);
       const orderId = response.data._id;
       const totalPrice = response.data.totalPrice;
@@ -87,6 +88,15 @@ const Checkout = () => {
       if (cart.clearCart) await cart.clearCart();
 
       if (formData.paymentMethod === 'khalti') {
+        // For Khalti, reduce stock immediately when order is placed
+        try {
+          await api.post('/payments/reduce-stock', { orderId });
+          console.log('Stock reduced successfully for Khalti order');
+        } catch (stockError) {
+          console.error('Failed to reduce stock:', stockError);
+          // Continue with payment even if stock reduction fails
+        }
+        
         // Initiate Khalti payment and redirect
         const paymentRes = await api.post('/payments/khalti/initiate', {
           amount: totalPrice,
@@ -137,7 +147,7 @@ const Checkout = () => {
     );
   }
 
-  const totalPrice = Math.round(cart.totalPrice * 1.13/100); // Including 13% tax
+  const totalPrice = Math.round(cart.totalPrice * 1.13); // Including 13% tax
 
   return (
     <Container size="lg" py="xl">
@@ -252,7 +262,7 @@ const Checkout = () => {
                     onChange={value => handleChange('paymentMethod', value)}
                     data={[
                       { value: 'khalti', label: 'Khalti' },
-                      { value: 'esewa', label: 'eSewa' },
+                      // { value: 'esewa', label: 'eSewa' },
                       { value: 'cod', label: 'Cash on Delivery' }
                     ]}
                     required

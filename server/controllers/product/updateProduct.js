@@ -60,9 +60,18 @@ const updateProduct = async (req, res) => {
         }
       }
     }
-    // If new images uploaded, replace; else keep old
-    if (newImages.length > 0) {
-      updateData.images = newImages;
+    // Get existing images from form (URLs)
+    let existingImages = [];
+    if (req.body['existingImages[]']) {
+      if (Array.isArray(req.body['existingImages[]'])) {
+        existingImages = req.body['existingImages[]'].map(url => ({ url }));
+      } else if (typeof req.body['existingImages[]'] === 'string') {
+        existingImages = [{ url: req.body['existingImages[]'] }];
+      }
+    }
+    // Merge new and existing images correctly
+    if (newImages.length > 0 || existingImages.length > 0) {
+      updateData.images = [...existingImages, ...newImages];
     } else if (product.images && product.images.length > 0) {
       updateData.images = product.images;
     }

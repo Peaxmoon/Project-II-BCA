@@ -576,12 +576,26 @@ const ProductDetail = () => {
               {product.tags && product.tags.length > 0 && (
                 <Group gap="xs">
                   {product.tags.slice(0, 5).map((tag, index) => (
-                    <Badge key={index} color="gray" variant="light" size="sm">{tag}</Badge>
+                    <Badge
+                      key={index}
+                      color="blue"
+                      variant="light"
+                      size="sm"
+                      style={{
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }
+                      }}
+                    >
+                      #{tag}
+                    </Badge>
                   ))}
                 </Group>
               )}
             </Stack>
-
             {/* Price */}
             <Stack gap="xs">
               <Group gap="md" align="center">

@@ -102,10 +102,10 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
   // Track if form has changes
   useEffect(() => {
     const initialForm = {
-      name: '', description: '', brand: '', category: '', subcategories: [], 
-      InitialPrice: 0, isDiscounted: false, afterDiscountPrice: 0, stock: 0, 
-      sku: '', isFeatured: false, isBestseller: false, tags: [], 
-      shippingWeight: '', shippingLength: '', shippingWidth: '', shippingHeight: '', 
+      name: '', description: '', brand: '', category: '', subcategories: [],
+      InitialPrice: 0, isDiscounted: false, afterDiscountPrice: 0, stock: 0,
+      sku: '', isFeatured: false, isBestseller: false, tags: [],
+      shippingWeight: '', shippingLength: '', shippingWidth: '', shippingHeight: '',
       status: 'active', images: [], unit: 'piece', warranty: '', specifications: {}
     };
 
@@ -194,6 +194,8 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
       for (let img of form.images) {
         if (img instanceof File) {
           formData.append('images', img);
+        } else if (img.url) {
+          formData.append('existingImages[]', img.url);
         }
       }
     }
@@ -276,8 +278,8 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
 
   return (
     <>
-      <Modal 
-        opened={opened} 
+      <Modal
+        opened={opened}
         onClose={handleModalClose} // Use custom close handler
         title={editMode ? "Edit Product" : "Add New Product"}
         size="lg"
@@ -290,14 +292,14 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
             <Group grow>
               <TextInput
                 label="Product Name"
-                placeholder="e.g. Cordless Drill Machine"
+                placeholder="Product Name"
                 value={form.name}
                 onChange={e => setForm({ ...form, name: e.target.value })}
                 required
               />
               <TextInput
                 label="Brand"
-                placeholder="e.g. DrillPro"
+                placeholder="Brand Name"
                 value={form.brand}
                 onChange={e => setForm({ ...form, brand: e.target.value })}
                 required
@@ -363,10 +365,10 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
               />
             </Group>
             <Group grow>
-              <Checkbox 
-                label="Discounted?" 
-                checked={form.isDiscounted || false} 
-                onChange={e => handleChange('isDiscounted', e.target.checked)} 
+              <Checkbox
+                label="Discounted?"
+                checked={form.isDiscounted || false}
+                onChange={e => handleChange('isDiscounted', e.target.checked)}
                 style={{ alignSelf: 'end' }}
               />
               {form.isDiscounted && (
@@ -382,15 +384,15 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
               )}
             </Group>
             <Group grow>
-              <Checkbox 
-                label="Featured?" 
-                checked={form.isFeatured || false} 
-                onChange={e => handleChange('isFeatured', e.target.checked)} 
+              <Checkbox
+                label="Featured?"
+                checked={form.isFeatured || false}
+                onChange={e => handleChange('isFeatured', e.target.checked)}
               />
-              <Checkbox 
-                label="Bestseller?" 
-                checked={form.isBestseller || false} 
-                onChange={e => handleChange('isBestseller', e.target.checked)} 
+              <Checkbox
+                label="Bestseller?"
+                checked={form.isBestseller || false}
+                onChange={e => handleChange('isBestseller', e.target.checked)}
               />
             </Group>
             <Group grow>
@@ -417,12 +419,12 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
                 value={form.warranty}
                 onChange={e => setForm({ ...form, warranty: e.target.value })}
               />
-              <Select 
-                label="Status" 
-                data={statusOptions} 
-                value={form.status || 'active'} 
-                onChange={val => handleChange('status', val)} 
-                required 
+              <Select
+                label="Status"
+                data={statusOptions}
+                value={form.status || 'active'}
+                onChange={val => handleChange('status', val)}
+                required
               />
             </Group>
             <Divider label="Shipping Info" labelPosition="center" my="sm" />
@@ -453,26 +455,68 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
               />
             </Group>
             <Divider label="Images" labelPosition="center" my="sm" />
+
             <FileInput
               label="Gallery Images"
               placeholder="Upload gallery images"
-              value={form.images}
-              onChange={files => setForm({ ...form, images: files })}
+              value={null}
+              onChange={files => {
+                const existingImages = Array.isArray(form.images) ? form.images : [];
+                const newFiles = files.filter(
+                  f => !existingImages.some(
+                    ef => ef instanceof File && ef.name === f.name && ef.size === f.size
+                  )
+                );
+                setForm(f => ({
+                  ...f,
+                  images: [...existingImages, ...newFiles]
+                }));
+              }}
               accept="image/*"
               multiple
             />
+            <Group gap="xs" mt={8}>FileInput
+              {Array.isArray(form.images) && form.images.map((img, idx) => (
+                <Paper key={idx} p={2} radius="sm" withBorder style={{ position: 'relative', display: 'inline-block' }}>
+                  <Image
+                    src={img instanceof File ? URL.createObjectURL(img) : img.url}
+                    alt={`Image ${idx + 1}`}
+                    width={48}
+                    height={48}
+                    fit="cover"
+                    radius="sm"
+                    style={{ objectFit: 'cover', borderRadius: 6 }}
+                  />
+                  <ActionIcon
+                    color="red"
+                    size="sm"
+                    style={{ position: 'absolute', top: 2, right: 2, zIndex: 2 }}
+                    onClick={() => {
+                      setForm(f => ({
+                        ...f,
+                        images: f.images.filter((_, i) => i !== idx)
+                      }));
+                    }}
+                    title="Remove image"
+                  >
+                    <IconX size={14} />
+                  </ActionIcon>
+                </Paper>
+              ))}
+            </Group>
+
             <Divider label="Specifications" labelPosition="center" my="sm" />
             <Group align="flex-end" gap="xs">
-              <TextInput 
-                label="Key" 
-                placeholder="e.g. Power" 
+              <TextInput
+                label="Key"
+                placeholder="e.g. Power"
                 value={specKey}
                 onChange={e => setSpecKey(e.target.value)}
                 style={{ flex: 1 }}
               />
-              <TextInput 
-                label="Value" 
-                placeholder="e.g. 500W" 
+              <TextInput
+                label="Value"
+                placeholder="e.g. 500W"
                 value={specValue}
                 onChange={e => setSpecValue(e.target.value)}
                 style={{ flex: 1 }}
@@ -489,26 +533,69 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
               ))}
             </Group>
             <Group grow>
-              <MultiSelect
-                label="Tags"
-                placeholder="Type and press enter to add tag"
-                data={form.tags.map(tag => ({ value: tag, label: tag }))}
-                value={form.tags}
-                onChange={tags => setForm(f => ({ ...f, tags }))}
-                searchable
-                clearable
-                creatable
-                getCreateLabel={query => `+ Create "${query}"`}
-                onCreate={query => {
-                  const newTag = query.trim();
-                  if (newTag) {
-                    const updated = [...form.tags, newTag];
-                    setForm(f => ({ ...f, tags: updated }));
-                    return newTag;
+              <Group align="flex-end" gap="xs">
+                <TextInput
+                  label="Tag"
+                  placeholder="Type tag and press Add (max 50 chars)"
+                  value={tagInputValue}
+                  onChange={e => setTagInputValue(e.target.value)}
+                  style={{ flex: 1 }}
+                  maxLength={50}
+                />
+                <Button
+                  leftSection={<IconPlus size={14} />}
+                  onClick={() => {
+                    const newTag = tagInputValue.trim().toLowerCase();
+                    if (
+                      newTag &&
+                      !form.tags.includes(newTag) &&
+                      newTag.length <= 50 &&
+                      form.tags.length < 20
+                    ) {
+                      setForm(f => ({ ...f, tags: [...f.tags, newTag] }));
+                      setTagInputValue('');
+                    }
+                  }}
+                  variant="light"
+                  size="xs"
+                  disabled={
+                    !tagInputValue.trim() ||
+                    form.tags.includes(tagInputValue.trim().toLowerCase()) ||
+                    tagInputValue.trim().length > 50 ||
+                    form.tags.length >= 20
                   }
-                  return '';
-                }}
-              />
+                >
+                  Add
+                </Button>
+              </Group>
+              <Group gap="xs" mt={8}>
+                {form.tags.map(tag => (
+                  <Paper
+                    key={tag}
+                    withBorder
+                    p="xs"
+                    radius="sm"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      background: '#e7f0fd'
+                    }}
+                  >
+                    <Text size="sm" fw={600}>#{tag}</Text>
+                    <ActionIcon
+                      color="red"
+                      size="xs"
+                      onClick={() => setForm(f => ({
+                        ...f,
+                        tags: f.tags.filter(t => t !== tag)
+                      }))}
+                    >
+                      <IconTrash size={12} />
+                    </ActionIcon>
+                  </Paper>
+                ))}
+              </Group>
             </Group>
             <Button type="submit" size="md" fullWidth loading={loading} mt="md">
               {editMode ? 'Update' : 'Add'} Product
@@ -517,8 +604,8 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
           </Stack>
         </form>
       </Modal>
-      <Modal 
-        opened={showConfirmClose} 
+      <Modal
+        opened={showConfirmClose}
         onClose={cancelClose}
         title="Discard Changes?"
         centered
