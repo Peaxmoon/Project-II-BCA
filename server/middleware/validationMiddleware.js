@@ -37,13 +37,28 @@ export const productValidation = [
         .trim()
         .notEmpty().withMessage("Product category is required")
         .isIn([
-            "TV & Audio", "Mobile Phones", "Kitchen Appliances", "Laptops", 
-            "Refrigerators", "Washing Machines", "Air Conditioners", "Small Gadgets",
-            "Lights & Accessories", "Power Tools", "Safety & Welding Equipment", 
-            "Hand Tools", "Office Essentials", "Gardening Tools", "Agriculture Tools",
-            "Bathroom Hardware", "General Hardware", "Home Appliances", "Machinery",
-            "Automotive Accessories", "Fans", "Monitors", "Smart Devices"
+            "Kitchen Appliances",
+            "Large Appliances", 
+            "Small Home Appliances",
+            "Mobile & Accessories",
+            "Computers & Accessories",
+            "Entertainment & Smart Devices",
+            "Wearables & Personal Gadgets",
+            "Others"
         ]).withMessage("Invalid category selected"),
+    
+    // Custom category validation
+    body("customCategory")
+        .optional()
+        .custom((value, { req }) => {
+            if (req.body.category === 'Others' && (!value || value.trim().length === 0)) {
+                throw new Error("Custom category is required when 'Others' is selected");
+            }
+            if (value && value.trim().length > 100) {
+                throw new Error("Custom category must be less than 100 characters");
+            }
+            return true;
+        }),
     
     body("InitialPrice")
         .notEmpty().withMessage("Product price is required")

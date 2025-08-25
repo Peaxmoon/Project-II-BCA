@@ -6,16 +6,16 @@ import crypto from "crypto";
 export const generateAccessToken = (user) => {
   return jwt.sign(
     { id: user._id, role: user.role },
-    process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: '7d' }
+    process.env.JWT_SECRET || process.env.ACCESS_TOKEN_SECRET || 'fallback-secret-key',
+    { expiresIn: process.env.JWT_EXPIRE || '7d' }
   );
 };
 
 export const generateRefreshToken = (user) => {
   return jwt.sign(
     { id: user._id },
-    process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
+    process.env.JWT_SECRET || process.env.REFRESH_TOKEN_SECRET || 'fallback-secret-key',
+    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || '7d' }
   );
 };
 
@@ -25,7 +25,7 @@ export const refreshAccessToken = async (req, res) => {
     return res.status(401).json({ message: 'No refresh token provided' });
   }
   try {
-    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET || process.env.REFRESH_TOKEN_SECRET || 'fallback-secret-key');
     const user = await User.findById(decoded.id);
     if (!user || !user.refreshTokens.includes(refreshToken)) {
       return res.status(401).json({ message: 'Invalid refresh token' });

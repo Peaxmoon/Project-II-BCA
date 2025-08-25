@@ -6,6 +6,16 @@ const getFilterOptions = async (req, res) => {
     const categories = await Product.distinct('category');
     const brands = await Product.distinct('brand');
     
+    // Get custom categories (when category is "Others")
+    const customCategories = await Product.distinct('customCategory', { category: 'Others' });
+    
+    // Get all subcategories including custom ones
+    const subcategories = await Product.distinct('subcategories');
+    const customSubcategories = await Product.distinct('customSubcategories');
+    
+    // Combine regular and custom subcategories
+    const allSubcategories = [...new Set([...subcategories, ...customSubcategories])];
+    
     // Get price range
     const priceStats = await Product.aggregate([
       {
@@ -24,7 +34,9 @@ const getFilterOptions = async (req, res) => {
 
     res.json({
       categories: categories.filter(Boolean),
+      customCategories: customCategories.filter(Boolean),
       brands: brands.filter(Boolean),
+      subcategories: allSubcategories.filter(Boolean),
       priceRange
     });
   } catch (error) {

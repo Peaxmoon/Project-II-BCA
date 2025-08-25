@@ -1,4 +1,4 @@
-import Product from '../../models/Product.js';
+import Product, { CATEGORY_OPTIONS_LIST, SUBCATEGORIES_BY_CATEGORY } from '../../models/Product.js';
 import { uploadOnCloudinary } from '../../utils/cloudinary.js';
 
 // Update product (admin only)
@@ -16,7 +16,13 @@ const updateProduct = async (req, res) => {
     // Parse arrays if needed
     if (typeof updateData.tags === 'string') updateData.tags = [updateData.tags];
     if (typeof updateData.subcategories === 'string') updateData.subcategories = [updateData.subcategories];
+    if (typeof updateData.customSubcategories === 'string') updateData.customSubcategories = [updateData.customSubcategories];
     if (typeof updateData.images === 'string') updateData.images = [updateData.images];
+
+    // Handle subcategories properly for FormData
+    if (updateData.subcategories && !Array.isArray(updateData.subcategories)) {
+      updateData.subcategories = [updateData.subcategories];
+    }
 
     // Parse numbers
     if (updateData.InitialPrice) updateData.InitialPrice = Number(updateData.InitialPrice);
@@ -25,6 +31,52 @@ const updateProduct = async (req, res) => {
     if (updateData.isDiscounted !== undefined) updateData.isDiscounted = updateData.isDiscounted === 'true' || updateData.isDiscounted === true;
     if (updateData.isFeatured !== undefined) updateData.isFeatured = updateData.isFeatured === 'true' || updateData.isFeatured === true;
     if (updateData.isBestseller !== undefined) updateData.isBestseller = updateData.isBestseller === 'true' || updateData.isBestseller === true;
+
+    // Category validation
+    if (updateData.category && !CATEGORY_OPTIONS_LIST.includes(updateData.category)) {
+      return res.status(400).json({ 
+        message: `Invalid category. Must be one of: ${CATEGORY_OPTIONS_LIST.join(', ')}` 
+      });
+    }
+
+    // Subcategory validation
+    if (updateData.category && updateData.category !== 'Others') {
+      let subcategory = updateData.subcategories;
+      if (Array.isArray(subcategory)) {
+        subcategory = subcategory[0];
+      }
+
+      if (!subcategory) {
+        return res.status(400).json({ 
+          message: 'Subcategory is required for selected category' 
+        });
+      } else {
+        const validSubs = SUBCATEGORIES_BY_CATEGORY[updateData.category] || [];
+        if (!validSubs.includes(subcategory)) {
+          return res.status(400).json({ 
+            message: `Invalid subcategory '${subcategory}' for category '${updateData.category}'. Valid options: ${validSubs.join(', ')}` 
+          });
+        }
+      }
+    }
+
+    // Validate custom category when "Others" is selected
+    if (updateData.category === 'Others') {
+      if (!updateData.customCategory || updateData.customCategory.trim() === '') {
+        return res.status(400).json({ 
+          message: 'Custom category is required when "Others" is selected' 
+        });
+      } else if (updateData.customCategory.trim().length > 100) {
+        return res.status(400).json({ 
+          message: 'Custom category must be less than 100 characters' 
+        });
+      }
+    }
+
+    // Handle custom category
+    if (updateData.category === 'Others' && updateData.customCategory) {
+      updateData.customCategory = updateData.customCategory.trim();
+    }
 
     // Shipping info
     updateData.shippingInfo = {

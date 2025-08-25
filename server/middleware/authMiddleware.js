@@ -14,7 +14,7 @@ export const verifyToken = (req, res, next) => {
     return res.status(401).json({ message: 'Unauthorized: No token provided' });
   }
   try {
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || process.env.ACCESS_TOKEN_SECRET || 'fallback-secret-key');
     req.user = decoded;
     // Ensure we have both _id and id for compatibility
     req.user._id = req.user._id || req.user.id;

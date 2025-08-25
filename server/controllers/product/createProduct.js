@@ -1,4 +1,4 @@
-import Product, { CATEGORY_OPTIONS_LIST } from "../../models/Product.js";
+import Product, { CATEGORY_OPTIONS_LIST, SUBCATEGORIES_BY_CATEGORY } from "../../models/Product.js";
 import { uploadOnCloudinary } from '../../utils/cloudinary.js';
 
 
@@ -16,7 +16,8 @@ const createProduct = async (req, res) => {
     console.log('=== Product Creation Started ===');
     console.log('User:', req.user._id);
     console.log('Request body keys:', Object.keys(req.body));
-    console.log('Files received:', req.files ? req.files.length : 0);
+    console.log('Files received:', req.files ? Object.keys(req.files) : 'No files');
+    console.log('Files details:', req.files);
 
     // 2. Validate Required Fields
     const requiredFields = ['name', 'description', 'brand', 'category', 'InitialPrice', 'stock'];
@@ -52,6 +53,33 @@ const createProduct = async (req, res) => {
       validationErrors.push(`Category must be one of: ${CATEGORY_OPTIONS_LIST.join(', ')}`);
     }
 
+    // Custom category validation
+    if (req.body.category === 'Others') {
+      if (!req.body.customCategory || req.body.customCategory.trim() === '') {
+        validationErrors.push('Custom category is required when "Others" is selected');
+      } else if (req.body.customCategory.trim().length > 100) {
+        validationErrors.push('Custom category must be less than 100 characters');
+      }
+    }
+
+    // Subcategory validation
+    if (req.body.category && req.body.category !== 'Others') {
+      // Handle both array and string formats from FormData
+      let subcategory = req.body.subcategories;
+      if (Array.isArray(subcategory)) {
+        subcategory = subcategory[0];
+      }
+
+      if (!subcategory) {
+        validationErrors.push('Subcategory is required for selected category');
+      } else {
+        const validSubs = SUBCATEGORIES_BY_CATEGORY[req.body.category] || [];
+        if (!validSubs.includes(subcategory)) {
+          validationErrors.push(`Invalid subcategory '${subcategory}' for category '${req.body.category}'. Valid options: ${validSubs.join(', ')}`);
+        }
+      }
+    }
+
     if (validationErrors.length > 0) {
       console.log('Field validation errors:', validationErrors);
       return res.status(400).json({
@@ -66,13 +94,16 @@ const createProduct = async (req, res) => {
     let images = [];
     let featuredImageUrl;
     if (req.files) {
+      console.log('Processing files:', req.files);
       // Multer upload.fields: req.files is an object: { featuredImage: [file], images: [file, ...] }
-      const galleryFiles = Array.isArray(req.files.images) ? req.files.images : [];
-      const featuredFiles = Array.isArray(req.files.featuredImage) ? req.files.featuredImage : [];
+      const galleryFiles = req.files.images ? (Array.isArray(req.files.images) ? req.files.images : [req.files.images]) : [];
+      const featuredFiles = req.files.featuredImage ? (Array.isArray(req.files.featuredImage) ? req.files.featuredImage : [req.files.featuredImage]) : [];
 
       // Upload gallery images
+      console.log('Gallery files to upload:', galleryFiles.length);
       for (let i = 0; i < galleryFiles.length; i++) {
         const file = galleryFiles[i];
+        console.log(`Uploading gallery file ${i + 1}:`, file.originalname);
         try {
           const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
           if (!allowedTypes.includes(file.mimetype)) {
@@ -82,9 +113,12 @@ const createProduct = async (req, res) => {
           if (file.size > maxSize) {
             throw new Error(`File too large: ${file.size} bytes. Maximum size: ${maxSize} bytes`);
           }
+          console.log(`Uploading to cloudinary: ${file.path}`);
           const result = await uploadOnCloudinary(file.path);
+          console.log('Upload successful:', result.secure_url);
           images.push({ url: result.secure_url, alt: file.originalname || 'Product Image' });
         } catch (uploadError) {
+          console.error('Upload error:', uploadError);
           return res.status(500).json({
             message: `Image upload failed: ${uploadError.message}`,
             code: 'UPLOAD_ERROR',
@@ -130,6 +164,11 @@ const createProduct = async (req, res) => {
       featuredImage: featuredImageUrl || (images.length > 0 ? images[0].url : undefined)
     };
 
+    // Handle custom category
+    if (req.body.category === 'Others' && req.body.customCategory) {
+      productData.customCategory = req.body.customCategory.trim();
+    }
+
     // 6. Handle Boolean Fields
     if (req.body.isDiscounted !== undefined) {
       productData.isDiscounted = req.body.isDiscounted === 'true' || req.body.isDiscounted === true;
@@ -149,9 +188,20 @@ const createProduct = async (req, res) => {
     }
     
     if (req.body.subcategories) {
-      productData.subcategories = Array.isArray(req.body.subcategories)
-        ? req.body.subcategories
-        : req.body.subcategories.split(',').map(sub => sub.trim()).filter(sub => sub);
+      // Handle FormData format where subcategories might be a single string
+      if (Array.isArray(req.body.subcategories)) {
+        productData.subcategories = req.body.subcategories;
+      } else {
+        // If it's a string, create an array with that single value
+        productData.subcategories = [req.body.subcategories];
+      }
+    }
+
+    // Handle custom subcategories
+    if (req.body.customSubcategories) {
+      productData.customSubcategories = Array.isArray(req.body.customSubcategories)
+        ? req.body.customSubcategories
+        : req.body.customSubcategories.split(',').map(sub => sub.trim()).filter(sub => sub);
     }
 
     // 8. Handle Shipping Info

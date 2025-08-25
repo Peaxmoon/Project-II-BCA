@@ -1,4 +1,4 @@
-import Product, { CATEGORY_OPTIONS_LIST }  from "../../models/Product.js";
+import Product, { CATEGORY_OPTIONS_LIST, SUBCATEGORIES_BY_CATEGORY }  from "../../models/Product.js";
 
 // newHere
 export const getProductQuery = async (req, res) => {
@@ -23,6 +23,7 @@ export const getCategoryOptions = async (req, res) => {
   const units = ['piece', 'set', 'kg', 'litre', 'box', 'pack', 'meter', 'roll', 'other'];
   res.json({
     categories: CATEGORY_OPTIONS_LIST,
+    subcategories: SUBCATEGORIES_BY_CATEGORY,
     units
   });
 };

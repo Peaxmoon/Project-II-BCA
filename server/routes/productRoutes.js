@@ -17,15 +17,11 @@ import {
 
 
 
-import { uploadMiddleware, cleanupTempFiles } from "../middleware/multerMiddleware.js";
+import { uploadWithCleanup } from "../middleware/multerMiddleware.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 import { requireRole } from "../middleware/roleMiddleware.js";
 import { asyncHandler } from "../middleware/errorMiddleware.js";
 import { productValidation, productUpdateValidation, validate, reviewValidation } from "../middleware/validationMiddleware.js";
-
-export const uploadWithCleanup = (fields = 'images', maxCount = 10) => {
-  return [uploadMiddleware(fields, maxCount), cleanupTempFiles];
-};
 
 const router = express.Router();
 

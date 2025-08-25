@@ -1,15 +1,83 @@
 import mongoose from "mongoose";
 
 const CATEGORY_OPTIONS = [
-  "TV & Audio",
-  "Mobile Phones",
   "Kitchen Appliances",
-  "Laptops",
-  "Refrigerators",
-  "Washing Machines",
-  "Air Conditioners",
-  "Small Gadgets"
+  "Large Appliances", 
+  "Small Home Appliances",
+  "Mobile & Accessories",
+  "Computers & Accessories",
+  "Entertainment & Smart Devices",
+  "Wearables & Personal Gadgets",
+  "Others"
 ];
+
+const SUBCATEGORIES_MAP = {
+  "Kitchen Appliances": [
+    "Rice Cookers",
+    "Mixer Grinders & Blenders",
+    "Induction / Gas Stoves",
+    "Electric Kettles / Coffee Makers",
+    "Toasters / Sandwich Makers",
+    "Microwave Ovens",
+    "Air Fryers",
+    "Water Purifiers / Dispensers",
+    "Others"
+  ],
+  "Large Appliances": [
+    "Refrigerators & Freezers",
+    "Washing Machines & Dryers",
+    "Dishwashers",
+    "Ovens",
+    "Others"
+  ],
+  "Small Home Appliances": [
+    "Irons & Steamers",
+    "Vacuum Cleaners",
+    "Sewing Machines",
+    "Fans",
+    "Heaters / Room Heaters",
+    "Air Coolers & Humidifiers",
+    "Inverters / UPS / Solar Backup",
+    "Others"
+  ],
+  "Mobile & Accessories": [
+    "Smartphones",
+    "Smart Feature Phones",
+    "Earphones & Headphones",
+    "Smartwatches / Fitness Bands",
+    "Power Banks",
+    "Chargers & Cables",
+    "Mobile Covers / Screen Protectors",
+    "Others"
+  ],
+  "Computers & Accessories": [
+    "Laptops & Desktops",
+    "Tablets",
+    "Keyboards / Mouse",
+    "Printers & Scanners",
+    "External Hard Drives / SSDs",
+    "USB Flash Drives",
+    "Networking Devices",
+    "Others"
+  ],
+  "Entertainment & Smart Devices": [
+    "Smart TVs",
+    "Projectors",
+    "Bluetooth Speakers / Home Theatres",
+    "VR Headsets",
+    "Streaming Devices",
+    "Others"
+  ],
+  "Wearables & Personal Gadgets": [
+    "Smart Glasses",
+    "Digital Cameras / Action Cameras",
+    "Drones",
+    "Others"
+  ],
+  "Others": [
+    "Others"
+  ]
+};
 
 
 // Also dimension needed of product for authentication and shipping
@@ -41,7 +109,8 @@ const productSchema = new mongoose.Schema({
   },
   brand: {
     type: String,
-    required: true
+    required: true,
+    trim: true  // Remove enum validation to allow any brand
   },
   category: {
     type: String,
@@ -49,8 +118,43 @@ const productSchema = new mongoose.Schema({
     required: true,
     index: true
   },
-  subcategories: [{
-    type: String
+  customCategory: {
+    type: String,
+    trim: true,
+    validate: {
+      validator: function(value) {
+        // customCategory is required only when category is "Others"
+        if (this.category === 'Others' && !value) {
+          return false;
+        }
+        return true;
+      },
+      message: 'Custom category is required when "Others" is selected'
+    }
+  },
+  subcategories: {
+    type: [String],
+    validate: {
+      validator: function(values) {
+        // Allow empty subcategories
+        if (!values || values.length === 0) return true;
+        
+        // Only allow one subcategory
+        if (values.length > 1) return false;
+        
+        // For 'Others' category, allow any subcategory
+        if (this.category === 'Others') return true;
+        
+        // For other categories, validate against predefined subcategories
+        const validSubs = SUBCATEGORIES_MAP[this.category] || [];
+        return values.every(val => validSubs.includes(val));
+      },
+      message: 'Please select exactly one valid subcategory'
+    }
+  },
+  customSubcategories: [{
+    type: String,
+    trim: true
   }],
   InitialPrice: {
     type: Number,
@@ -140,9 +244,18 @@ const productSchema = new mongoose.Schema({
 });
 
 // Add text index for fast search (if not already present)
-productSchema.index({ name: 'text', description: 'text', brand: 'text', category: 'text' });
+productSchema.index({ 
+  name: 'text', 
+  description: 'text', 
+  brand: 'text', 
+  category: 'text' 
+});
 
+// Export constants and model (combine all exports at the end)
 export const CATEGORY_OPTIONS_LIST = CATEGORY_OPTIONS;
-export default mongoose.model("Product", productSchema);
+export const SUBCATEGORIES_BY_CATEGORY = SUBCATEGORIES_MAP;
 
+// Create and export model as default
+const Product = mongoose.model("Product", productSchema);
+export default Product;
 

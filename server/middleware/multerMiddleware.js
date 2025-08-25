@@ -108,6 +108,12 @@ export const uploadMiddleware = (fields = 'images', maxCount = 10) => {
 // Cleanup function to remove temp files after response
 export const cleanupTempFiles = (req, res, next) => {
   res.on('finish', () => {
+    // Only cleanup if cloudinary is configured
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.log('Skipping temp file cleanup - cloudinary not configured');
+      return;
+    }
+    
     // Multer's req.files can be an object (fields) or array (array)
     if (Array.isArray(req.files)) {
       req.files.forEach(file => {
