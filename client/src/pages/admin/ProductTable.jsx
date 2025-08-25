@@ -45,7 +45,9 @@ const ProductTable = ({ products, onEdit, onDelete, deleteLoading }) => {
                 <Text fw={600} lineClamp={1} style={{ cursor: 'pointer' }} onClick={() => openDetails(product)}>{product.name}</Text>
                 <Badge color={product.status === 'active' ? 'green' : product.status === 'inactive' ? 'yellow' : 'gray'}>{product.status}</Badge>
               </Group>
-              <Text size="sm" c="dimmed" mb="xs" lineClamp={1}>{product.brand} &bull; {product.category}</Text>
+              <Text size="sm" c="dimmed" mb="xs" lineClamp={1}>
+                {product.brand} &bull; {product.category === 'Others' ? product.customCategory : product.category}
+              </Text>
               <Stack gap={2} mb="xs">
                 <Text size="sm">Stock: <b>{product.stock}</b></Text>
                 {/* Price Section - clearer and more professional */}

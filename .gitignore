@@ -30,6 +30,7 @@
 # 🛠 Package Manager Artifacts
 # ===========================
 **/bun.lock
+**/bun.lockb 
 **/.bun/
 **/yarn.lock
 **/pnpm-lock.yaml

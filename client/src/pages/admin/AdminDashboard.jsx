@@ -95,35 +95,34 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error('Product save error:', err.response?.data);
 
-      // Handle validation errors specifically
+      // Improved error handling
       if (err.response?.status === 400) {
         const errorData = err.response.data;
-        if (errorData.code === 'VALIDATION_ERROR' && errorData.details) {
-          // Show specific validation errors
-          const errorMessages = errorData.details.map(detail =>
-            `${detail.field}: ${detail.message}`
-          ).join('\n');
-          notifications.show({
-            color: 'red',
-            title: 'Validation Error',
-            message: errorMessages,
-            autoClose: 8000
-          });
-        } else if (errorData.message) {
-          notifications.show({
-            color: 'red',
-            title: 'Error',
-            message: errorData.message,
-            autoClose: 5000
-          });
+        let errorMessage = '';
+
+        if (errorData.code === 'VALIDATION_ERROR') {
+          if (Array.isArray(errorData.details)) {
+            // Handle array of validation errors
+            errorMessage = errorData.details.map(detail => 
+              `${detail.field}: ${detail.message}`
+            ).join('\n');
+          } else if (typeof errorData.details === 'string') {
+            // Handle string error message
+            errorMessage = errorData.details;
+          } else {
+            // Handle object error message
+            errorMessage = errorData.message;
+          }
         } else {
-          notifications.show({
-            color: 'red',
-            title: 'Error',
-            message: 'Failed to save product. Please check your input.',
-            autoClose: 5000
-          });
+          errorMessage = errorData.message || 'Failed to save product';
         }
+
+        notifications.show({
+          color: 'red',
+          title: 'Error',
+          message: errorMessage,
+          autoClose: 5000
+        });
       } else {
         notifications.show({
           color: 'red',

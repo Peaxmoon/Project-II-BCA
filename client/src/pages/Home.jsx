@@ -32,6 +32,7 @@ import {
 import api from '../services/api';
 import ProductCard from '../components/common/ProductCard';
 import ShopByCategory from '../components/home/ShopByCategory';
+import ShopByBrand from '../components/home/ShopByBrand';
 
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
@@ -128,7 +129,8 @@ const Home = () => {
   //   { name: 'Washing Machines', icon: '🧺', count: '40+ Products', color: 'pink' },
   // ];
 
-  const brands = [
+  // Featured brands for homepage only
+  const FEATURED_BRANDS = [
     { name: 'Samsung', icon: IconDeviceMobile, color: 'blue' },
     { name: 'Apple', icon: IconDeviceLaptop, color: 'blue' },
     { name: 'Sony', icon: IconDeviceTv, color: 'blue' },
@@ -136,6 +138,9 @@ const Home = () => {
     { name: 'Panasonic', icon: IconDeviceAirpods, color: 'blue' },
     { name: 'Whirlpool', icon: IconDeviceWatch, color: 'blue' },
   ];
+
+  // Replace the brands constant with FEATURED_BRANDS
+  const brands = FEATURED_BRANDS;
 
   if (loading) {
     return (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Modal, Stack, Group, TextInput, NumberInput, Checkbox, Select, MultiSelect, Divider, FileInput, Button, Alert, Tooltip, Textarea, Text, ActionIcon, Image, Title, Box, Paper, rem
+  Modal, Stack, Group, TextInput, NumberInput, Checkbox, Select, Divider, FileInput, Button, Alert, Tooltip, Textarea, Text, ActionIcon, Image, Title, Box, Paper, rem
 } from '@mantine/core';
 import { IconInfoCircle, IconPhoto, IconUpload, IconX, IconPlus, IconTrash } from '@tabler/icons-react';
 import { Dropzone, IMAGE_MIME_TYPE } from '@mantine/dropzone';
@@ -12,65 +12,6 @@ const statusOptions = [
   { value: 'archived', label: 'Archived' },
 ];
 
-const SUBCATEGORIES = {
-  "TV & Audio": [
-    "LED TVs",
-    "Smart TVs",
-    "Home Theaters",
-    "Soundbars",
-    "Bluetooth Speakers"
-  ],
-  "Mobile Phones": [
-    "Smartphones",
-    "Feature Phones",
-    "Android Phones",
-    "iPhones",
-    "Accessories"
-  ],
-  "Kitchen Appliances": [
-    "Microwaves",
-    "Blenders",
-    "Coffee Makers",
-    "Toasters",
-    "Food Processors"
-  ],
-  "Laptops": [
-    "Gaming Laptops",
-    "Ultrabooks",
-    "Business Laptops",
-    "2-in-1 Laptops",
-    "MacBooks"
-  ],
-  "Refrigerators": [
-    "Single Door",
-    "Double Door",
-    "Side by Side",
-    "Mini Fridges",
-    "Deep Freezers"
-  ],
-  "Washing Machines": [
-    "Front Load",
-    "Top Load",
-    "Semi Automatic",
-    "Fully Automatic",
-    "Dryers"
-  ],
-  "Air Conditioners": [
-    "Split AC",
-    "Window AC",
-    "Portable AC",
-    "Inverter AC",
-    "Air Coolers"
-  ],
-  "Small Gadgets": [
-    "Smart Watches",
-    "Fitness Bands",
-    "Earbuds",
-    "Power Banks",
-    "Chargers"
-  ]
-};
-
 const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, setForm, selectedId }) => {
   const [formError, setFormError] = useState(null);
   const [categoryOptions, setCategoryOptions] = useState([]);
@@ -81,6 +22,8 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
   const [specKey, setSpecKey] = useState('');
   const [specValue, setSpecValue] = useState('');
   const [tagInputValue, setTagInputValue] = useState(''); // State for tag input value
+  const [customCategoryInput, setCustomCategoryInput] = useState(''); // State for custom category input
+  const [customSubcategoryInput, setCustomSubcategoryInput] = useState(''); // State for custom subcategory input
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -88,12 +31,11 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
         const res = await api.get('/products/categories');
         setCategoryOptions(res.data.categories || []);
         setUnitOptions(res.data.units || []);
-        setSubcategoryOptions(res.data.subcategories || []); // Add this line if your API provides subcategories
+        if (res.data.subcategories) {
+          setSubcategoryOptions(res.data.subcategories);
+        }
       } catch (err) {
-        setCategoryOptions([]);
-        setUnitOptions([]);
-        setSubcategoryOptions([]);
-        console.error('Error fetching product options:', err, err.response?.data?.message || err.message);
+        console.error('Error fetching options:', err);
       }
     };
     fetchOptions();
@@ -122,8 +64,13 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
       return form[key] !== initialForm[key];
     });
 
-    setHasChanges(hasFormChanges);
-  }, [form]);
+    // Also check custom fields
+    const hasCustomFieldChanges = 
+      (form.category === 'Others' && customCategoryInput.trim()) ||
+      (form.category === 'Others' && customSubcategoryInput.trim());
+
+    setHasChanges(hasFormChanges || hasCustomFieldChanges);
+  }, [form, customCategoryInput, customSubcategoryInput]);
 
   const handleChange = (field, value) => {
     setForm(f => ({ ...f, [field]: value }));
@@ -158,16 +105,39 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
   const handleSubmit = (e) => {
     e.preventDefault();
     setFormError(null);
-    const errMsg = validateForm();
-    if (errMsg) {
-      setFormError(errMsg);
+
+    // Validate file names
+    const hasLongFileName = form.images?.some(img => {
+      if (img instanceof File && img.name.length > 100) {
+        setFormError('File name too long. Please rename your files to be shorter than 100 characters.');
+        return true;
+      }
+      return false;
+    });
+
+    if (hasLongFileName) return;
+
+    // Validate subcategory
+    if (form.category && form.category !== 'Others' && (!form.subcategories || form.subcategories.length === 0)) {
+      setFormError('Please select a subcategory');
       return;
     }
+
+    // Validate custom category
+    if (form.category === 'Others' && !customCategoryInput.trim()) {
+      setFormError('Please enter a custom category name');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('name', form.name.trim());
     formData.append('description', form.description.trim());
     formData.append('brand', form.brand.trim());
     formData.append('category', form.category);
+    // Add custom category if category is "Others"
+    if (form.category === 'Others' && customCategoryInput.trim()) {
+      formData.append('customCategory', customCategoryInput.trim());
+    }
     formData.append('InitialPrice', form.InitialPrice.toString());
     formData.append('stock', form.stock.toString());
     formData.append('isDiscounted', form.isDiscounted.toString());
@@ -180,8 +150,9 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
     formData.append('unit', form.unit);
     if (form.sku) formData.append('sku', form.sku.trim());
     if (form.warranty) formData.append('warranty', form.warranty.trim());
+    // Handle subcategories correctly
     if (form.subcategories && form.subcategories.length > 0) {
-      form.subcategories.forEach((sub, i) => formData.append(`subcategories[${i}]`, sub));
+      formData.append('subcategories', form.subcategories[0]);
     }
     if (form.tags && form.tags.length > 0) {
       form.tags.forEach((tag, i) => formData.append(`tags[${i}]`, tag));
@@ -190,14 +161,19 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
     if (form.shippingLength) formData.append('shippingLength', form.shippingLength.toString());
     if (form.shippingWidth) formData.append('shippingWidth', form.shippingWidth.toString());
     if (form.shippingHeight) formData.append('shippingHeight', form.shippingHeight.toString());
+    // Sanitize file names when adding to FormData
     if (form.images && form.images.length > 0) {
-      for (let img of form.images) {
+      form.images.forEach((img, index) => {
         if (img instanceof File) {
-          formData.append('images', img);
+          // Create a shorter file name if needed
+          const extension = img.name.split('.').pop();
+          const newFileName = `product_image_${index}.${extension}`;
+          const newFile = new File([img], newFileName, { type: img.type });
+          formData.append('images', newFile);
         } else if (img.url) {
           formData.append('existingImages[]', img.url);
         }
-      }
+      });
     }
     if (form.specifications && Object.keys(form.specifications).length > 0) {
       Object.entries(form.specifications).forEach(([key, value]) => {
@@ -243,19 +219,32 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
 
   // Update subcategory options dynamically when category changes
   useEffect(() => {
-    if (form.category && SUBCATEGORIES[form.category]) {
-      setSubcategoryOptions(SUBCATEGORIES[form.category]);
-      // Remove subcategories not in the new options
-      setForm(f => ({
-        ...f,
-        subcategories: (f.subcategories || []).filter(sub => SUBCATEGORIES[form.category].includes(sub))
-      }));
-    } else {
-      setSubcategoryOptions([]);
-      setForm(f => ({ ...f, subcategories: [] }));
+    if (form.category) {
+      if (form.category === 'Others') {
+        setForm(f => ({ ...f, subcategories: [] }));
+      } else {
+        // Get subcategories for selected category
+        const subs = subcategoryOptions[form.category] || [];
+        // Reset subcategories when category changes
+        setForm(f => ({
+          ...f,
+          subcategories: []
+        }));
+      }
     }
-    // eslint-disable-next-line
-  }, [form.category]);
+  }, [form.category, subcategoryOptions]);
+
+  // Reset custom inputs when modal opens/closes
+  useEffect(() => {
+    if (!opened) {
+      setCustomCategoryInput('');
+      setCustomSubcategoryInput('');
+    } else if (editMode && form.category === 'Others') {
+      // Populate custom fields when editing a product with "Others" category
+      setCustomCategoryInput(form.customCategory || '');
+      setCustomSubcategoryInput(form.customSubcategories?.[0] || '');
+    }
+  }, [opened, editMode, form.category, form.customCategory, form.customSubcategories]);
 
   // Handler for tag input keydown (space or enter to add tag)
   const handleTagInputKeyDown = (event) => {
@@ -322,29 +311,42 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
                 value={form.category || ''}
                 onChange={val => handleChange('category', val)}
                 required
+                searchable={false}
+                clearable={false}
               />
-              <MultiSelect
-                label="Subcategories"
-                placeholder="Select subcategories"
-                data={subcategoryOptions.map(sub => ({ value: sub, label: sub }))}
-                value={form.subcategories || []}
-                onChange={val => handleChange('subcategories', val)}
-                searchable
-                clearable
-                creatable
-                getCreateLabel={query => `+ Create "${query}"`}
-                onCreate={query => {
-                  const newSub = query.trim();
-                  if (newSub) {
-                    setSubcategoryOptions(prev => [...prev, newSub]);
-                    handleChange('subcategories', [...(form.subcategories || []), newSub]);
-                    return newSub;
-                  }
-                  return '';
+              <Select
+                label="Subcategory"
+                placeholder="Select subcategory"
+                data={[
+                  ...(form.category === 'Others' 
+                    ? [{ value: 'Others', label: 'Others' }]
+                    : (subcategoryOptions[form.category] || []).map(sub => ({ 
+                        value: sub, 
+                        label: sub 
+                      }))
+                  )
+                ]}
+                value={form.subcategories?.[0] || ''}
+                onChange={(value) => {
+                  setForm(prev => ({
+                    ...prev,
+                    subcategories: value ? [value] : []
+                  }));
                 }}
+                searchable={false}
+                clearable={false}
                 disabled={!form.category}
               />
             </Group>
+            {form.category === 'Others' && (
+              <TextInput
+                label="Custom Category"
+                placeholder="Enter custom category name"
+                value={customCategoryInput}
+                onChange={(e) => setCustomCategoryInput(e.target.value)}
+                required
+              />
+            )}
             <Group grow>
               <NumberInput
                 label="Initial Price"
@@ -410,6 +412,8 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
                 value={form.unit}
                 onChange={val => handleChange('unit', val)}
                 required
+                searchable={false}
+                clearable={false}
               />
             </Group>
             <Group grow>
@@ -425,6 +429,8 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
                 value={form.status || 'active'}
                 onChange={val => handleChange('status', val)}
                 required
+                searchable={false}
+                clearable={false}
               />
             </Group>
             <Divider label="Shipping Info" labelPosition="center" my="sm" />
@@ -475,7 +481,7 @@ const ProductFormModal = ({ opened, onClose, onSave, loading, editMode, form, se
               accept="image/*"
               multiple
             />
-            <Group gap="xs" mt={8}>FileInput
+            <Group gap="xs" mt={8}>
               {Array.isArray(form.images) && form.images.map((img, idx) => (
                 <Paper key={idx} p={2} radius="sm" withBorder style={{ position: 'relative', display: 'inline-block' }}>
                   <Image
