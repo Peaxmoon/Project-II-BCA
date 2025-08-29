@@ -13,18 +13,18 @@ const createProduct = async (req, res) => {
   }
 
   try {
-    console.log('=== Product Creation Started ===');
-    console.log('User:', req.user._id);
-    console.log('Request body keys:', Object.keys(req.body));
-    console.log('Files received:', req.files ? Object.keys(req.files) : 'No files');
-    console.log('Files details:', req.files);
+    // console.log('=== Product Creation Started ===');
+    // console.log('User:', req.user._id);
+    // console.log('Request body keys:', Object.keys(req.body));
+    // console.log('Files received:', req.files ? Object.keys(req.files) : 'No files');
+    // console.log('Files details:', req.files);
 
     // 2. Validate Required Fields
     const requiredFields = ['name', 'description', 'brand', 'category', 'InitialPrice', 'stock'];
     const missingFields = requiredFields.filter(field => !req.body[field]);
     
     if (missingFields.length > 0) {
-      console.log('Missing required fields:', missingFields);
+      // console.log('Missing required fields:', missingFields);
       return res.status(400).json({
         message: 'Missing required fields',
         code: 'VALIDATION_ERROR',
@@ -81,7 +81,7 @@ const createProduct = async (req, res) => {
     }
 
     if (validationErrors.length > 0) {
-      console.log('Field validation errors:', validationErrors);
+      // console.log('Field validation errors:', validationErrors);
       return res.status(400).json({
         message: 'Validation failed',
         code: 'VALIDATION_ERROR',
@@ -94,16 +94,16 @@ const createProduct = async (req, res) => {
     let images = [];
     let featuredImageUrl;
     if (req.files) {
-      console.log('Processing files:', req.files);
+      // console.log('Processing files:', req.files);
       // Multer upload.fields: req.files is an object: { featuredImage: [file], images: [file, ...] }
       const galleryFiles = req.files.images ? (Array.isArray(req.files.images) ? req.files.images : [req.files.images]) : [];
       const featuredFiles = req.files.featuredImage ? (Array.isArray(req.files.featuredImage) ? req.files.featuredImage : [req.files.featuredImage]) : [];
 
       // Upload gallery images
-      console.log('Gallery files to upload:', galleryFiles.length);
+      // console.log('Gallery files to upload:', galleryFiles.length);
       for (let i = 0; i < galleryFiles.length; i++) {
         const file = galleryFiles[i];
-        console.log(`Uploading gallery file ${i + 1}:`, file.originalname);
+        // console.log(`Uploading gallery file ${i + 1}:`, file.originalname);
         try {
           const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
           if (!allowedTypes.includes(file.mimetype)) {
@@ -113,9 +113,9 @@ const createProduct = async (req, res) => {
           if (file.size > maxSize) {
             throw new Error(`File too large: ${file.size} bytes. Maximum size: ${maxSize} bytes`);
           }
-          console.log(`Uploading to cloudinary: ${file.path}`);
+          // console.log(`Uploading to cloudinary: ${file.path}`);
           const result = await uploadOnCloudinary(file.path);
-          console.log('Upload successful:', result.secure_url);
+          // console.log('Upload successful:', result.secure_url);
           images.push({ url: result.secure_url, alt: file.originalname || 'Product Image' });
         } catch (uploadError) {
           console.error('Upload error:', uploadError);
@@ -151,7 +151,7 @@ const createProduct = async (req, res) => {
         }
       }
     } else {
-      console.log('No images provided');
+      // console.log('No images provided');
     }
 
     // 5. Prepare Product Data
@@ -231,21 +231,21 @@ const createProduct = async (req, res) => {
       productData.specifications = new Map(Object.entries(productData.specifications));
     }
 
-    console.log('Product data prepared:', {
-      name: productData.name,
-      brand: productData.brand,
-      category: productData.category,
-      price: productData.InitialPrice,
-      stock: productData.stock,
-      imagesCount: productData.images.length
-    });
+    // console.log('Product data prepared:', {
+    //   name: productData.name,
+    //   brand: productData.brand,
+    //   category: productData.category,
+    //   price: productData.InitialPrice,
+    //   stock: productData.stock,
+    //   imagesCount: productData.images.length
+    // });
 
     // 10. Create and Save Product
     const newProduct = new Product(productData);
     const savedProduct = await newProduct.save();
     
-    console.log('Product created successfully:', savedProduct._id);
-    console.log('=== Product Creation Completed ===');
+    // console.log('Product created successfully:', savedProduct._id);
+    // console.log('=== Product Creation Completed ===');
 
     // 11. Return Success Response
     res.status(201).json({

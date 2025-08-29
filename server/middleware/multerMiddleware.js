@@ -110,7 +110,7 @@ export const cleanupTempFiles = (req, res, next) => {
   res.on('finish', () => {
     // Only cleanup if cloudinary is configured
     if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-      console.log('Skipping temp file cleanup - cloudinary not configured');
+      // console.log('Skipping temp file cleanup - cloudinary not configured');
       return;
     }
     

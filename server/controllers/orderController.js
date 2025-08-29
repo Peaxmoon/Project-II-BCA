@@ -194,15 +194,15 @@ export const getOrderById = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
   try {
     if (!hasRole(req.user, ['admin'])) {
-      console.log('[OrderStatus] Forbidden: user is not admin', req.user && req.user.role);
+      // console.log('[OrderStatus] Forbidden: user is not admin', req.user && req.user.role);
       return res.status(403).json({ message: "Only admin can update order status" });
     }
     const order = await Order.findById(req.params.id);
     if (!order) {
-      console.log('[OrderStatus] Order not found:', req.params.id);
+      // console.log('[OrderStatus] Order not found:', req.params.id);
       return res.status(404).json({ message: "Order not found" });
     }
-    console.log('[OrderStatus] Updating order', req.params.id, 'from', order.orderStatus, 'to', req.body.status);
+    // console.log('[OrderStatus] Updating order', req.params.id, 'from', order.orderStatus, 'to', req.body.status);
     const oldStatus = order.orderStatus;
     order.orderStatus = req.body.status || order.orderStatus;
 
@@ -212,7 +212,7 @@ export const updateOrderStatus = async (req, res) => {
 
       // If this is a COD order and it's being marked as delivered, reduce stock now
       if (order.paymentMethod === 'cod') {
-        console.log('[OrderStatus] COD order delivered, reducing stock');
+        // console.log('[OrderStatus] COD order delivered, reducing stock');
         try {
           for (const item of order.orderItems) {
             await Product.findByIdAndUpdate(item.product, {
@@ -227,7 +227,7 @@ export const updateOrderStatus = async (req, res) => {
     }
 
     await order.save();
-    console.log('[OrderStatus] Order saved. New status:', order.orderStatus);
+    // console.log('[OrderStatus] Order saved. New status:', order.orderStatus);
     res.json(order);
   } catch (error) {
     console.error('[OrderStatus] Error updating order:', error);

@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
           token: token,
         })
       } catch (error) {
-        console.log('User not authenticated:', error.message)
+        // console.log('User not authenticated:', error.message)
         setUser(null)
         setToken(null)
         delete api.defaults.headers.common['Authorization'];
@@ -84,7 +84,7 @@ export function AuthProvider({ children }) {
     try {
       await api.post('/users/logout')
     } catch (error) {
-      console.log('Logout error:', error.message)
+      // console.log('Logout error:', error.message)
     } finally {
       setUser(null)
       setToken(null)

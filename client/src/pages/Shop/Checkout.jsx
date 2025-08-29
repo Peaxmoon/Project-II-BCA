@@ -91,7 +91,7 @@ const Checkout = () => {
         // For Khalti, reduce stock immediately when order is placed
         try {
           await api.post('/payments/reduce-stock', { orderId });
-          console.log('Stock reduced successfully for Khalti order');
+          // console.log('Stock reduced successfully for Khalti order');
         } catch (stockError) {
           console.error('Failed to reduce stock:', stockError);
           // Continue with payment even if stock reduction fails

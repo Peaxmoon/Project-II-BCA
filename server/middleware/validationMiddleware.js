@@ -218,11 +218,11 @@ export const cartValidation = [
 
 // Middleware to handle validation errors
 export const validate = (req, res, next) => {
-  console.log('=== Validation Debug ===');
-  console.log('Request body keys:', Object.keys(req.body));
-  console.log('Request body:', req.body);
+//   console.log('=== Validation Debug ===');
+//   console.log('Request body keys:', Object.keys(req.body));
+//   console.log('Request body:', req.body);
   if (Array.isArray(req.files)) {
-    console.log('Files:', req.files.map(f => ({ name: f.originalname, size: f.size })));
+    // console.log('Files:', req.files.map(f => ({ name: f.originalname, size: f.size })));
   } else if (req.files && typeof req.files === 'object') {
     const fileSummary = {};
     for (const key in req.files) {
@@ -230,14 +230,14 @@ export const validate = (req, res, next) => {
         fileSummary[key] = req.files[key].map(f => ({ name: f.originalname, size: f.size }));
       }
     }
-    console.log('Files:', fileSummary);
+    // console.log('Files:', fileSummary);
   } else {
-    console.log('Files: No files');
+    // console.log('Files: No files');
   }
   
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log('Validation errors:', errors.array());
+    // console.log('Validation errors:', errors.array());
     return res.status(400).json({
       message: "Validation failed",
       code: 'VALIDATION_ERROR',
@@ -248,8 +248,8 @@ export const validate = (req, res, next) => {
       }))
     });
   }
-  console.log('Validation passed');
-  console.log('=== End Validation Debug ===');
+//   console.log('Validation passed');
+//   console.log('=== End Validation Debug ===');
   next();
 };
 
